@@ -1,0 +1,21 @@
+server:
+  port: 80
+  servlet:
+    context-path: /feng
+# 配置连接池
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      url: jdbc:mysql:///mybatis-example
+      username: root
+      password: 51213002
+      driver-class-name: com.mysql.cj.jdbc.Driver
+# 配置mybatis
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
+  configuration:
+    auto-mapping-behavior: full
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  type-aliases-package: com.fengxin.pojo

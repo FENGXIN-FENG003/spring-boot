@@ -2,6 +2,7 @@ package com.fengxin.controller;
 
 import com.fengxin.mapper.EmployeeMapper;
 import com.fengxin.pojo.Employee;
+import com.fengxin.service.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,11 @@ import java.util.List;
 public class Controller {
     private static final Logger log = LoggerFactory.getLogger (Controller.class);
     @Autowired
-    private EmployeeMapper employeeMapper;
+    private Service service;
     
     @GetMapping
     public List<Employee> getEmployees() {
-        List<Employee> employees = employeeMapper.getEmployeeAll ();
+        List<Employee> employees = service.findAll ();
         log.info ("员工数据：{}", employees);
         return employees;
     }

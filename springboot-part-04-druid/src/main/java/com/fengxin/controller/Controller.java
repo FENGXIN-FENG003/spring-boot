@@ -1,8 +1,14 @@
 package com.fengxin.controller;
 
+import com.fengxin.pojo.Employee;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @author FENGXIN
@@ -13,8 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/d")
 public class Controller {
-    @GetMapping("hello")
-    public String hello() {
-        return "hello druid";
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @GetMapping("get")
+    public List<Employee> hello() {
+        return jdbcTemplate.query("select * from t_emp", new BeanPropertyRowMapper<> (Employee.class));
     }
+    
 }

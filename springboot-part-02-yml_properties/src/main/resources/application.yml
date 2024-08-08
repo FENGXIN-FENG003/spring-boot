@@ -1,6 +1,6 @@
 #  1. 数据结构用树形结构呈现，通过缩进来表示层级
 #  2. 连续的项目（集合）通过减号  -  来表示
-#  3. 键值结构里面的key/value对用冒号  ： 来分隔
+#  3. 键值结构里面的key/value对用冒号  : 来分隔 :后：空格+值
 #  4. YAML配置文件的扩展名是yaml 或 yml
 server:
   port: 80
@@ -12,3 +12,11 @@ fx:
   root:
     username: root
     password: 51213002
+#    使用多环境配置来根据不同的运行环境（如开发、测试、生产）加载不同的配置
+#  命名：application-xxx.yml/yaml
+#  使用生效：spring:profiles:active: test,dev
+#  如果设置了spring.profiles.active，并且和application有重叠属性，以active设置优先。
+#  如果设置了spring.profiles.active，和application无重叠属性，application设置依然生效！
+spring:
+  profiles:
+    active: test,dev

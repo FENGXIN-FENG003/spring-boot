@@ -1,0 +1,14 @@
+#  1. 数据结构用树形结构呈现，通过缩进来表示层级
+#  2. 连续的项目（集合）通过减号  -  来表示
+#  3. 键值结构里面的key/value对用冒号  ： 来分隔
+#  4. YAML配置文件的扩展名是yaml 或 yml
+server:
+  port: 80
+  servlet:
+    context-path: /feng
+
+# 自定义属性根据规则定义即可
+fx:
+  root:
+    username: root
+    password: 51213002

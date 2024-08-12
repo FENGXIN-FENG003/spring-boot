@@ -2,6 +2,7 @@ package com.fengxin.service;
 
 import com.fengxin.pojo.Type;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fengxin.util.Result;
 
 /**
 * @author FENGXIN
@@ -9,5 +10,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-08-12 13:33:39
 */
 public interface TypeService extends IService<Type> {
-
+    
+    Result findAllTypes ();
 }

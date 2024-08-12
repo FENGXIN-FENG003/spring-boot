@@ -110,7 +110,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         
         // 不存在重复用户
-        return Result.ok (new HashMap<> ());
+        return Result.ok (null);
+    }
+    
+    /**
+     * 用户注册
+     */
+    @Override
+    public Result register (User user) {
+        // 校验用户注册名
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq (User::getUsername,user.getUsername());
+        User user1 = userMapper.selectOne (wrapper);
+        if (user1 != null) {
+            return Result.build (null,ResultCodeEnum.USERNAME_USED);
+        }
+        
+        // 注册成功 存入数据库 响应前端
+        if (userMapper.insert (user) > 0) {
+            wrapper.eq (User::getUsername,user.getUsername());
+            System.out.println ("success insert user : " + userMapper.selectOne (wrapper));
+        }
+        return Result.ok (null);
     }
 }
 

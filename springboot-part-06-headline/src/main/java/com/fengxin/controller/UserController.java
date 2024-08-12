@@ -38,4 +38,10 @@ public class UserController {
     public Result checkUserName(@Param ("username") String username) {
         return userService.checkUserName(username);
     }
+    
+    // 用户注册
+    @PostMapping("/regist")
+    public Result register(@RequestBody User user) {
+        return userService.register(user);
+    }
 }

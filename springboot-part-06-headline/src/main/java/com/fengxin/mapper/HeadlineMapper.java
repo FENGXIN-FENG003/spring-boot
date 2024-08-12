@@ -2,6 +2,7 @@ package com.fengxin.mapper;
 
 import com.fengxin.pojo.Headline;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
 * @author FENGXIN
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2024-08-12 13:33:39
 * @Entity com.fengxin.pojo.Headline
 */
+@Mapper
 public interface HeadlineMapper extends BaseMapper<Headline> {
 
 }

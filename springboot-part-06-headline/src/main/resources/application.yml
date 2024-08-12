@@ -5,7 +5,7 @@ server:
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql:///mybatis-example
+    url: jdbc:mysql:///sm_db
     username: root
     password: 51213002
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -14,9 +14,10 @@ public class Result<T> {
     public Result(){}
     // 返回数据
     protected static <T> Result<T> build(T data) {
-        Result<T> result = new Result<T>();
-        if (data != null)
+        Result<T> result = new Result<> ();
+        if (data != null) {
             result.setData(data);
+        }
         return result;
     }
     public static <T> Result<T> build(T body, Integer code, String message) {
@@ -34,8 +35,6 @@ public class Result<T> {
     /**
      * 操作成功
      * @param data  baseCategory1List
-     * @param <T>
-     * @return
      */
     public static<T> Result<T> ok(T data){
         Result<T> result = build(data);

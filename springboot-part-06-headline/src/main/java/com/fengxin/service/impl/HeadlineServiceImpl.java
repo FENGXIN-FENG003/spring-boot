@@ -1,5 +1,6 @@
 package com.fengxin.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -48,6 +49,27 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         
         // 响应数据
         return Result.ok (pageInfo);
+    }
+    
+    /**
+     * 返回头条详细内容
+     * @param hid 前端参数
+     * @return 详细内容
+     */
+    @Override
+    public Result showHeadlineDetail (Integer hid) {
+        
+        // 查询内容
+        Map headlineDetail = headlineMapper.selectHeadlineDetail (hid);
+        
+        // 更新浏览量
+        Headline headline = new Headline ();
+        headline.setHid (hid);
+        headline.setPageViews ((Integer) headlineDetail.get ("pageViews") + 1);
+        headlineMapper.updateById (headline);
+        
+        // 返回数据
+        return Result.ok (headlineDetail);
     }
 }
 

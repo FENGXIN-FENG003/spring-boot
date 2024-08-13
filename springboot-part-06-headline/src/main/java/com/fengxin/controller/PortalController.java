@@ -5,6 +5,7 @@ import com.fengxin.service.HeadlineService;
 import com.fengxin.service.TypeService;
 import com.fengxin.util.Result;
 import jakarta.annotation.Resource;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -17,10 +18,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/portal")
 @CrossOrigin
 public class PortalController {
+    
     @Resource
     private TypeService typeService;
+    
     @Resource
     HeadlineService headlineService;
+    
     // 展示所有类别
     @GetMapping("/findAllTypes")
     public Result findAllTypes() {
@@ -31,5 +35,11 @@ public class PortalController {
     @PostMapping("/findNewsPage")
     public Result findNewsPage(@RequestBody PortalVo portalVo) {
         return headlineService.findNewsPage(portalVo);
+    }
+    
+    // 查询头条详细内容
+    @PostMapping("showHeadlineDetail")
+    public Result showHeadlineDetail(@Param ("hid") Integer hid) {
+        return headlineService.showHeadlineDetail(hid);
     }
 }

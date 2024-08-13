@@ -13,4 +13,6 @@ import com.fengxin.util.Result;
 public interface HeadlineService extends IService<Headline> {
     
     Result findNewsPage (PortalVo portalVo);
+    
+    Result showHeadlineDetail (Integer hid);
 }

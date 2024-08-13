@@ -1,5 +1,6 @@
 package com.fengxin.service;
 
+import com.fengxin.pojo.PortalVo;
 import com.fengxin.pojo.Type;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fengxin.util.Result;
@@ -12,4 +13,5 @@ import com.fengxin.util.Result;
 public interface TypeService extends IService<Type> {
     
     Result findAllTypes ();
+    
 }

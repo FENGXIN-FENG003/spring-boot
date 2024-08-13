@@ -16,11 +16,15 @@
             <result property="version" column="version" jdbcType="INTEGER"/>
             <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
     </resultMap>
-
-    <sql id="Base_Column_List">
-        hid,title,article,
-        type,publisher,page_views,
-        create_time,update_time,version,
-        is_deleted
-    </sql>
+<!--    portalVo.keyWords:传入的参数 @Param ("portalVo") PortalVo portalVo-->
+    <select id="selectMyPage" resultType="java.util.Map">
+        SELECT hid,title,type,page_views pageViews,TIMESTAMPDIFF(HOUR ,create_time,NOW()) pastHours, publisher
+        FROM news_headline WHERE is_deleted = 0
+        <if test="portalVo.keyWords != null">
+            AND title LIKE CONCAT('%',#{portalVo.keyWords},'%')
+        </if>
+        <if test="portalVo.type != 0">
+            AND type = #{portalVo.type}
+        </if>
+    </select>
 </mapper>

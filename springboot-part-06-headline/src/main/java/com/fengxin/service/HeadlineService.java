@@ -2,6 +2,8 @@ package com.fengxin.service;
 
 import com.fengxin.pojo.Headline;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fengxin.pojo.PortalVo;
+import com.fengxin.util.Result;
 
 /**
 * @author FENGXIN
@@ -9,5 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-08-12 13:33:39
 */
 public interface HeadlineService extends IService<Headline> {
-
+    
+    Result findNewsPage (PortalVo portalVo);
 }

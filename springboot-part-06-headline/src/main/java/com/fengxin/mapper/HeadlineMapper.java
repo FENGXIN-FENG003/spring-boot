@@ -1,8 +1,14 @@
 package com.fengxin.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fengxin.pojo.Headline;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.fengxin.pojo.PortalVo;
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 /**
 * @author FENGXIN
@@ -12,7 +18,13 @@ import org.apache.ibatis.annotations.Mapper;
 */
 @Mapper
 public interface HeadlineMapper extends BaseMapper<Headline> {
-
+    /**
+     * 自定义查询
+     * @param page 分页插件 数据存储在这里 @Param ("portalVo")指定参数名方便数据库查询使用
+     * @param portalVo 自定义sql中需要用到的参数
+     */
+    @MapKey ("hid")
+    IPage<Map> selectMyPage (IPage page ,@Param ("portalVo") PortalVo portalVo);
 }
 
 

@@ -12,6 +12,7 @@ import com.fengxin.util.Result;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,6 +72,29 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         
         // 返回数据
         return Result.ok (headlineDetail);
+    }
+    
+    /**
+     * 插入头条数据
+     */
+    @Override
+    public Result publish (Headline headline) {
+        headline.setCreateTime (new Date ());
+        headline.setUpdateTime (new Date ());
+        headline.setPageViews (0);
+        headlineMapper.insert (headline);
+        System.out.println ("headline = " + headline);
+        return Result.ok (headline);
+    }
+    
+    @Override
+    public Result findHeadlineByHid (Integer hid) {
+        Headline headline = headlineMapper.selectById (hid);
+        // Map newsInformation = headlineMapper.selectNewsInformation (hid);
+        Map<String,Object> map = new HashMap<>();
+        map.put("headline",headline);
+        return Result.ok (map);
+        
     }
 }
 

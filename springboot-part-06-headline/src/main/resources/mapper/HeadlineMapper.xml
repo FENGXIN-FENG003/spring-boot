@@ -35,4 +35,10 @@
         JOIN news_user u ON h.publisher = u.uid
         WHERE h.hid = #{id}
     </select>
+<!--    查询新闻信息-->
+    <select id="selectNewsInformation" resultType="java.util.Map">
+        SELECT hid,title,article,type
+        FROM news_headline
+        WHERE hid = #{hid}
+    </select>
 </mapper>

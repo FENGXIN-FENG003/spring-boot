@@ -21,5 +21,8 @@ public interface HeadlineService extends IService<Headline> {
     Result findHeadlineByHid (Integer hid);
     
     Result updateNews (Headline headline);
+    
+    Result removeByHid (Integer hid);
+    
 }
 

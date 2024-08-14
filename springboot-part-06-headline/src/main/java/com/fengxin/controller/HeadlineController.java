@@ -5,6 +5,7 @@ import com.fengxin.service.HeadlineService;
 import com.fengxin.util.JwtHelper;
 import com.fengxin.util.Result;
 import jakarta.annotation.Resource;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -46,5 +47,11 @@ public class HeadlineController {
     public Result update(@RequestBody Headline headline,@RequestHeader String token) {
         // 不用在这里验证token 拦截器自动会校验
         return headlineService.updateNews(headline);
+    }
+    
+    // 删除头条
+    @PostMapping("removeByHid")
+    public Result removeByHid(@Param ("hid") Integer hid, @RequestHeader String token) {
+        return headlineService.removeByHid(hid);
     }
 }

@@ -23,13 +23,13 @@ public interface HeadlineMapper extends BaseMapper<Headline> {
      * @param page 分页插件 数据存储在这里 @Param ("portalVo")指定参数名方便数据库查询使用
      * @param portalVo 自定义sql中需要用到的参数
      */
-    @MapKey ("hid")
+
     IPage<Map> selectMyPage (IPage page ,@Param ("portalVo") PortalVo portalVo);
     
-    @MapKey ("id")
-    Map selectHeadlineDetail(@Param ("id") Integer id);
+
+    Map selectHeadlineDetail(@Param ("hid") Integer hid);
     
-    @MapKey ("hid")
+
     Map selectNewsInformation(@Param ("hid") Integer hid);
 }
 

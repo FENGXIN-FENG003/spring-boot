@@ -16,6 +16,7 @@
             <result property="version" column="version" jdbcType="INTEGER"/>
             <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
     </resultMap>
+
 <!--    portalVo.keyWords:传入的参数 @Param ("portalVo") PortalVo portalVo-->
     <select id="selectMyPage" resultType="java.util.Map">
         SELECT hid,title,type,page_views pageViews,TIMESTAMPDIFF(HOUR ,create_time,NOW()) pastHours, publisher
@@ -31,10 +32,11 @@
 <!--    查询头条详细信息-->
     <select id="selectHeadlineDetail" resultType="java.util.Map">
         SELECT h.hid,h.title,h.article,h.type,t.tname typeName,h.page_views pageViews,TIMESTAMPDIFF(HOUR ,h.update_time,NOW()) pastHours,h.publisher,u.nick_name author
-        FROM news_headline h JOIN news_type t ON h.type = t.tid
-        JOIN news_user u ON h.publisher = u.uid
-        WHERE h.hid = #{id}
+        FROM news_headline h LEFT JOIN news_type t ON h.type = t.tid
+        LEFT JOIN news_user u ON h.publisher = u.uid
+        WHERE h.hid = #{hid}
     </select>
+
 <!--    查询新闻信息-->
     <select id="selectNewsInformation" resultType="java.util.Map">
         SELECT hid,title,article,type

@@ -27,6 +27,7 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
     
     @Resource
     private HeadlineMapper headlineMapper;
+    
     /**
      * 返回前端请求的分页数据
      */
@@ -63,7 +64,7 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         
         // 查询内容
         Map headlineDetail = headlineMapper.selectHeadlineDetail (hid);
-        
+        System.out.println ("headlineDetail = " + headlineDetail);
         // 更新浏览量
         Headline headline = new Headline ();
         headline.setHid (hid);
@@ -71,7 +72,10 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         headlineMapper.updateById (headline);
         
         // 返回数据
-        return Result.ok (headlineDetail);
+        Map<String,Object> map = new HashMap<>();
+        map.put("headline",headlineDetail);
+        System.out.println ("map = " + map);
+        return Result.ok (map);
     }
     
     /**
@@ -97,7 +101,6 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         Map<String,Object> map = new HashMap<>();
         map.put("headline",headline);
         return Result.ok (map);
-        
     }
     
     /**
@@ -107,9 +110,20 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
     public Result updateNews (Headline headline) {
         // 读取版本
         Integer version = headlineMapper.selectById (headline.getHid ()).getVersion ();
-        headline.setVersion (version + 1);
+        headline.setVersion (version);
         headline.setUpdateTime (new Date ());
+        
         headlineMapper.updateById (headline);
+        System.out.println ("headline = " + headline);
+        return Result.ok (null);
+    }
+    
+    /**
+     * 删除头条
+     */
+    @Override
+    public Result removeByHid (Integer hid) {
+        headlineMapper.deleteById (hid);
         return Result.ok (null);
     }
 }

@@ -39,7 +39,7 @@ public class PortalController {
     
     // 查询头条详细内容
     @PostMapping("showHeadlineDetail")
-    public Result showHeadlineDetail(@Param ("hid") Integer hid) {
+    public Result showHeadlineDetail(Integer hid) {
         return headlineService.showHeadlineDetail(hid);
     }
 }

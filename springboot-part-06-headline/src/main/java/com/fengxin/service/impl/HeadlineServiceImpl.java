@@ -38,17 +38,18 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         
         // 执行自定义查询
         headlineMapper.selectMyPage (page,portalVo);
-        
+        System.out.println ("page.getRecords () = " + page.getRecords ());
         // 封装数据
-        Map<String, Object> pageInfo = new HashMap<> ();
+        Map<String,Object> map = new HashMap<>();
+        Map<String,Object> pageInfo = new HashMap<>();
         pageInfo.put("pageData",page.getRecords());
         pageInfo.put("pageNum",page.getCurrent());
         pageInfo.put("pageSize",page.getSize());
         pageInfo.put("totalPage",page.getPages());
         pageInfo.put("totalSize",page.getTotal());
-        
+        map.put("pageInfo",pageInfo);
         // 响应数据
-        return Result.ok (pageInfo);
+        return Result.ok (map);
     }
     
     /**

@@ -87,6 +87,9 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         return Result.ok (headline);
     }
     
+    /**
+     * 头条信息回显
+     */
     @Override
     public Result findHeadlineByHid (Integer hid) {
         Headline headline = headlineMapper.selectById (hid);
@@ -95,6 +98,19 @@ public class HeadlineServiceImpl extends ServiceImpl<HeadlineMapper, Headline>
         map.put("headline",headline);
         return Result.ok (map);
         
+    }
+    
+    /**
+     * 更新头条内容
+     */
+    @Override
+    public Result updateNews (Headline headline) {
+        // 读取版本
+        Integer version = headlineMapper.selectById (headline.getHid ()).getVersion ();
+        headline.setVersion (version + 1);
+        headline.setUpdateTime (new Date ());
+        headlineMapper.updateById (headline);
+        return Result.ok (null);
     }
 }
 

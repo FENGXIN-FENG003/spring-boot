@@ -36,10 +36,15 @@ public class HeadlineController {
     
     // 响应头条信息 回显头条内容
     @PostMapping("findHeadlineByHid")
-    public Result findHeadlineByHid(Integer hid) {
+    public Result findHeadlineByHid(Integer hid,@RequestHeader String token) {
         // 不用在这里验证token 拦截器自动会校验
         return headlineService.findHeadlineByHid(hid);
     }
     
-    //
+    // 修改头条内容
+    @PostMapping("update")
+    public Result update(@RequestBody Headline headline,@RequestHeader String token) {
+        // 不用在这里验证token 拦截器自动会校验
+        return headlineService.updateNews(headline);
+    }
 }

@@ -14,34 +14,41 @@ import org.springframework.web.bind.annotation.*;
  * @description
  **/
 @RestController()
-@RequestMapping("/user")
+@RequestMapping("user")
 @CrossOrigin
 public class UserController {
     @Resource
     private UserService userService;
     
+    
     // 用户登录
-    @PostMapping("/login")
+    @PostMapping("login")
     public Result login(@RequestBody User user) {
         System.out.println ("user = " + user);
         return userService.login(user);
     }
     
     // 根据用户请求头token返回用户信息给客户端
-    @GetMapping("/userInfo")
+    @GetMapping("getUserInfo")
     public Result getUserInfo(@RequestHeader String token) {
         return userService.userInfo(token);
     }
     
     // 校验用户注册名
-    @GetMapping("/checkUserName")
+    @GetMapping("checkUserName")
     public Result checkUserName(@Param ("username") String username) {
         return userService.checkUserName(username);
     }
     
     // 用户注册
-    @PostMapping("/regist")
+    @PostMapping("regist")
     public Result register(@RequestBody User user) {
         return userService.register(user);
+    }
+    
+    // 检查登录是否过期
+    @GetMapping("checkLogin")
+    public Result checkLogin(@RequestHeader String token) {
+        return userService.checkLogin(token);
     }
 }

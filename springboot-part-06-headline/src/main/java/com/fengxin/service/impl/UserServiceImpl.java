@@ -133,6 +133,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         return Result.ok (null);
     }
+    
+    /**
+     * 根据token校验登录是否过期
+     */
+    @Override
+    public Result checkLogin (String token) {
+        if(jwtHelper.isExpiration (token)) {
+            return Result.build (null, ResultCodeEnum.NOTLOGIN);
+        }
+        return Result.ok (null);
+    }
 }
 
 

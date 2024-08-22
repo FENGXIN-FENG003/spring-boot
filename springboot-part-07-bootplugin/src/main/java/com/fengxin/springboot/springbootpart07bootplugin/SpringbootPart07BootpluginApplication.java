@@ -27,6 +27,8 @@ public class SpringbootPart07BootpluginApplication {
         DruidPasswordCallback druidPasswordCallback1 = ioc.getBean (DruidPasswordCallback.class);
         DruidPasswordCallback druidPasswordCallback2 = ioc.getBean (DruidPasswordCallback.class);
         System.out.println (" prototype " + (druidPasswordCallback1 == druidPasswordCallback2));
+        
+        
     }
     
 }

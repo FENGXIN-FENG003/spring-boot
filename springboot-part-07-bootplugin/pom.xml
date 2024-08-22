@@ -30,6 +30,11 @@
         <java.version>22</java.version>
     </properties>
     <dependencies>
+<!--        starter不用添加版本号 因为继承了父工程spring-boot-starter-parent 父工程有继承spring-boot-dependencies 该pom管理所有依赖的版本-->
+        <!--spring-boot-starter是所有starter的starter
+        spring-boot-starter包含依赖spring-boot-autoconfigure
+        spring-boot-autoconfigure包导入所有场景配置类 当导入需要的场景时 相关的配置类才生效
+        即按需配置-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>

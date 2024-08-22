@@ -2,8 +2,10 @@ package com.fengxin.springboot.springbootpart07bootplugin.config;
 
 import com.alibaba.druid.util.DruidDataSourceUtils;
 import com.alibaba.druid.util.DruidPasswordCallback;
+import com.fengxin.springboot.springbootpart07bootplugin.pojo.Sheep;
 import com.fengxin.springboot.springbootpart07bootplugin.pojo.User;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
@@ -14,6 +16,10 @@ import org.springframework.context.annotation.Scope;
  * @project springboot-part
  * @description 自定义注册组件
  **/
+// 该属性绑定常用于第三方绑定 第三方无法添加@Component 在config 中自定义注册@Bean 添加注解@ConfigurationProperties(prefix = "...")
+// 然后再使用该注解绑定
+    // 该注解自动注册组件 并绑定属性
+@EnableConfigurationProperties(Sheep.class)
 // @Import可以注册第三方组件 组件名是全类名
 @Import (DruidDataSourceUtils.class)
 // 和@Configuration没有区别 用于boot项目  前者适用于通用
@@ -41,4 +47,5 @@ public class MyConfig {
     public DruidPasswordCallback druidPasswordCallback(){
         return new DruidPasswordCallback ();
     }
+
 }

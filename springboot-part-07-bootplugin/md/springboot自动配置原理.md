@@ -37,18 +37,66 @@
 ```
 3. 此包中包含开发的所有整合配置 但并不是全部生效，是按需生效的
 在App中，`@SpringBootApplication`有`@EnableAutoConfiguration`
-![img.png](image/img1.png)
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+public @interface SpringBootApplication {
+```
 `@EnableAutoConfiguration`中有注解`@Import(AutoConfigurationImportSelector.class)`进行批量导入`AutoConfigure`
-![img.png](image/img2.png)
+```java
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+```
 
 `AutoConfigurationImportSelector.java`中有`selectImports`方法 调用`getAutoConfigurationEntry`方法
-![img.png](image/img.png)
+```java
+@Override
+	public String[] selectImports(AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return NO_IMPORTS;
+		}
+		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(annotationMetadata);
+		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
+	}
+```
 `getAutoConfigurationEntry`调用`getCandidateConfigurations`，最终得到所有的`AutoConfigure`
-![img_1.png](image/img_1.png)
+```java
+protected AutoConfigurationEntry getAutoConfigurationEntry(AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return EMPTY_ENTRY;
+		}
+		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+```
 4. 核心参数
 在`AutoConfigure`中会有条件注解`@ConditionalOnClass(Xxx.class)`，当引入场景启动器会导入其中的类，条件成立bean组件生效
 其中核心参数会从`xxxProperties`类对象提取 且使用`@EnableConfigurationProperties(xxxProperties.class)`属性绑定
-![img_4.png](image/img_4.png)
-![img_2.png](image/img_2.png)
+```java
+@EnableConfigurationProperties({ServerProperties.class})
+@Import({BeanPostProcessorsRegistrar.class, ServletWebServerFactoryConfiguration.EmbeddedTomcat.class, ServletWebServerFactoryConfiguration.EmbeddedJetty.class, ServletWebServerFactoryConfiguration.EmbeddedUndertow.class})
+public class ServletWebServerFactoryAutoConfiguration {
+}
+```
+```java
+@Bean
+    @ConditionalOnClass(
+        name = {"org.apache.catalina.startup.Tomcat"}
+    )
+    public TomcatServletWebServerFactoryCustomizer tomcatServletWebServerFactoryCustomizer(ServerProperties serverProperties) {
+        return new TomcatServletWebServerFactoryCustomizer(serverProperties);
+    }
+```
 `xxxProperties`中使用`@ConfigurationProperties`进行属性绑定 从配置文件中绑定核心参数
-![img_3.png](image/img_3.png)
+```java
+@ConfigurationProperties(
+    prefix = "server",
+    ignoreUnknownFields = true
+)
+public class ServerProperties {
+```

@@ -23,6 +23,7 @@ public class LogController {
         // 使用lombok的日志输出
         // log.info ("hello log...");
         logger.info ("hello log...");
+        logger.error ("error");
         return "Hello BootLog";
     }
 }

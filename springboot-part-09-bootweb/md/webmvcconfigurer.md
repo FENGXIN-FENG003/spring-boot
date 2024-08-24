@@ -74,7 +74,7 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     addResourceHandler(registry, this.mvcProperties.getWebjarsPathPattern(),
     "classpath:/META-INF/resources/webjars/");
     // 当以`private String staticPathPattern = "/**";`请求时 将进入四个类路径寻找资源（this.mvcProperties.getStaticPathPattern())
-   /*  
+    /*  
    this.resourceProperties.getStaticLocations()
    
    private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {
@@ -85,12 +85,6 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     
     private String[] staticLocations = CLASSPATH_RESOURCE_LOCATIONS; 
     */
-    /*
-     * 1. classpath:/META-INF/resources/
-     * 2.classpath:/resources/
-     * 3.classpath:/static/
-     * 4.classpath:/public/
-     */
     addResourceHandler(registry, this.mvcProperties.getStaticPathPattern(), (registration) -> {
         registration.addResourceLocations(this.resourceProperties.getStaticLocations());
         if (this.servletContext != null) {
@@ -100,6 +94,10 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     });
 }
 ```
+1. `this.mvcProperties.getWebjarsPathPattern()`：mvcProperties属于WebMvcProperties类
+    `@ConfigurationProperties(prefix = "spring.mvc")
+    public class WebMvcProperties {` 该类属性绑定配置文件spring.mvc,其中设置静态资源访问路径，webjars访问路径
+2. `this.resourceProperties.getStaticLocations()`：该类除了可以设置缓存策略外，还在这里设置静态资源路径
 ```java
 private void addResourceHandler(ResourceHandlerRegistry registry, String pattern, Consumer<ResourceHandlerRegistration> customizer) {
 if (registry.hasMappingForPattern(pattern)) {

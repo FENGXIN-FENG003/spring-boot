@@ -14,27 +14,27 @@ public class WebMvcAutoConfiguration {
 ### 效果
 ```java
 // 表单提交Rest请求 默认只有GET,POST，使用此filter,可以提交PUT,DELETE请求
-	@Bean
-	@ConditionalOnMissingBean(HiddenHttpMethodFilter.class)
-	@ConditionalOnProperty(prefix = "spring.mvc.hiddenmethod.filter", name = "enabled")
-	public OrderedHiddenHttpMethodFilter hiddenHttpMethodFilter() {
-		return new OrderedHiddenHttpMethodFilter();
-	}
+@Bean
+@ConditionalOnMissingBean(HiddenHttpMethodFilter.class)
+@ConditionalOnProperty(prefix = "spring.mvc.hiddenmethod.filter", name = "enabled")
+public OrderedHiddenHttpMethodFilter hiddenHttpMethodFilter() {
+    return new OrderedHiddenHttpMethodFilter();
+}
 // 默认只有GET,POST携带数据，允许PUT,DELETE携带数据
-	@Bean
-	@ConditionalOnMissingBean(FormContentFilter.class)
-	@ConditionalOnProperty(prefix = "spring.mvc.formcontent.filter", name = "enabled", matchIfMissing = true)
-	public OrderedFormContentFilter formContentFilter() {
-		return new OrderedFormContentFilter();
-	}
+@Bean
+@ConditionalOnMissingBean(FormContentFilter.class)
+@ConditionalOnProperty(prefix = "spring.mvc.formcontent.filter", name = "enabled", matchIfMissing = true)
+public OrderedFormContentFilter formContentFilter() {
+    return new OrderedFormContentFilter();
+}
 ```
 
 ```java
-	@Configuration(proxyBeanMethods = false)
-	@Import(EnableWebMvcConfiguration.class)
-	@EnableConfigurationProperties({ WebMvcProperties.class, WebProperties.class })
-	@Order(0)
-	public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer, ServletContextAware {
+@Configuration(proxyBeanMethods = false)
+@Import(EnableWebMvcConfiguration.class)
+@EnableConfigurationProperties({ WebMvcProperties.class, WebProperties.class })
+@Order(0)
+public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer, ServletContextAware {
 ```
 给容器放入`WebMvcConfigurer`可以自己定制SpringMvc各种功能<br>
 `WebProperties`绑定配置：`spring.web`
@@ -107,6 +107,15 @@ return;
 }
 ResourceHandlerRegistration registration = registry.addResourceHandler(pattern);
 customizer.accept(registration);
+    /* 
+    1.this.resourceProperties:
+    在WebMvcAutoConfiguration中：
+    2.private final Resources resourceProperties;
+    Resources属于配置类：
+    @ConfigurationProperties("spring.web")
+    public class WebProperties { 
+    由此在spring.web配置文件进行缓存策略配置
+    */
     // 设置缓存生命周期 默认 0 
     registration.setCachePeriod(getSeconds(this.resourceProperties.getCache().getPeriod()));
     // HTTP缓存控制（前端）
@@ -115,6 +124,14 @@ customizer.accept(registration);
     registration.setUseLastModified(this.resourceProperties.getCache().isUseLastModified());
     customizeResourceHandlerRegistration(registration);
 }
+```
+```properties
+# 设置资源缓存周期 单位：s
+spring.web.resources.cache.period=3600
+# 更详细的缓存策略控制 设置此属性，将重写spring.web.resources.cache.period
+spring.web.resources.cache.cachecontrol.max-age=7200
+# 设置是否开启最新修改时间
+spring.web.resources.cache.use-last-modified=true
 ```
 ## EnableWebMvcConfiguration
 ### 欢迎页

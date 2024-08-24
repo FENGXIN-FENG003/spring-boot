@@ -65,6 +65,7 @@ public static class WebMvcAutoConfigurationAdapter implements WebMvcConfigurer, 
 ```java
 @Override
 public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    // addMappings默认为true
     if (!this.resourceProperties.isAddMappings()) {
         logger.debug("Default resource handling disabled");
         return;
@@ -97,7 +98,7 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
 1. `this.mvcProperties.getWebjarsPathPattern()`：mvcProperties属于WebMvcProperties类
     `@ConfigurationProperties(prefix = "spring.mvc")
     public class WebMvcProperties {` 该类属性绑定配置文件spring.mvc,其中设置静态资源访问路径，webjars访问路径
-2. `this.resourceProperties.getStaticLocations()`：该类除了可以设置缓存策略外，还在这里设置静态资源路径
+2. `this.resourceProperties.getStaticLocations()`：该类除了可以设置缓存策略外，还在这里设置静态资源路径，设置private boolean addMappings = true;
 ```java
 private void addResourceHandler(ResourceHandlerRegistry registry, String pattern, Consumer<ResourceHandlerRegistration> customizer) {
 if (registry.hasMappingForPattern(pattern)) {
@@ -205,3 +206,28 @@ private Resource getIndexHtmlResource(Resource location) {
 ```
 3. favicon.ico browser默认规则 访问index.html会请求favicon.ico资源加载 和springboot没有太大关系<br>
 ![img.png](image/img.png)
+4. 为什么使用bean组件也能实现自定义配置？
+   1. EnableWebMvcConfiguration继承了DelegatingWebMvcConfiguration
+   ```java
+    @Configuration(proxyBeanMethods = false)
+    @EnableConfigurationProperties(WebProperties.class)
+    public static class EnableWebMvcConfiguration extends DelegatingWebMvcConfiguratio  implements ResourceLoaderAware {
+    ```
+   2. DelegatingWebMvcConfiguration中：
+    ```java
+    public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
+    private final WebMvcConfigurerComposite configurers = new WebMvcConfigurerComposite();
+
+    public DelegatingWebMvcConfiguration() {
+    }
+    // 自动注入所有的configurers 其中包含有自定义配置组件bean 
+    @Autowired(
+        required = false
+    )
+    public void setConfigurers(List<WebMvcConfigurer> configurers) {
+        if (!CollectionUtils.isEmpty(configurers)) {
+            this.configurers.addWebMvcConfigurers(configurers);
+        }
+    }
+    ```
+   3. `class WebMvcConfigurerComposite implements WebMvcConfigurer {` WebMvcConfigurerComposite中重写了所有WebMvcConfigurer方法 当bean调用自定义方法时 会调用这里的方法实现自定义配置

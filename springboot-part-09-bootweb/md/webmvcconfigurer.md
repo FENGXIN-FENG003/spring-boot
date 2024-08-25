@@ -211,7 +211,7 @@ private Resource getIndexHtmlResource(Resource location) {
    ```java
     @Configuration(proxyBeanMethods = false)
     @EnableConfigurationProperties(WebProperties.class)
-    public static class EnableWebMvcConfiguration extends DelegatingWebMvcConfiguratio  implements ResourceLoaderAware {
+    public static class EnableWebMvcConfiguration extends DelegatingWebMvcConfiguration  implements ResourceLoaderAware {
     ```
    2. DelegatingWebMvcConfiguration中：
     ```java
@@ -220,7 +220,7 @@ private Resource getIndexHtmlResource(Resource location) {
 
     public DelegatingWebMvcConfiguration() {
     }
-    // 自动注入所有的configurers 其中包含有自定义配置组件bean 
+    // 自动注入容器所有的configurers 其中包含有自定义配置组件bean 
     @Autowired(
         required = false
     )
@@ -231,3 +231,29 @@ private Resource getIndexHtmlResource(Resource location) {
     }
     ```
    3. `class WebMvcConfigurerComposite implements WebMvcConfigurer {` WebMvcConfigurerComposite中重写了所有WebMvcConfigurer方法 当bean调用自定义方法时 会调用这里的方法实现自定义配置
+
+## 内容协商
+### 动态返回请求的格式数据
+#### 根据请求头
+1. 返回json 设置请求头Accept:application/json
+   1. `spring-boot-starter-web`默认引入依赖`spring-boot-starter-json`,`spring-boot-starter-json`包含依赖`jackson-databind`包含依赖`jackson-core`,jackson-core底层默认处理数据返回json
+2. 返回xml 设置请求头Accept:application/xml
+   1. 导入依赖
+   ```xml
+   <dependency>
+     <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+   </dependency>
+   ```
+   2. 实体类添加注解`@JacksonXmlRootElement`
+### 根据请求参数
+1. 配置文件
+   ```properties
+     # 配置请求参数
+     spring.mvc.contentnegotiation.favor-parameter=true
+     # 配置请求参数自定义名 默认是format
+     spring.mvc.contentnegotiation.parameter-name=type
+   ```
+2. 请求参数
+   1. json:http://localhost:8080/person?type=json
+   2. xml:http://localhost:8080/person?type=xml

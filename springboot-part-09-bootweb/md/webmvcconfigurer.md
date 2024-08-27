@@ -257,3 +257,135 @@ private Resource getIndexHtmlResource(Resource location) {
 2. 请求参数
    1. json:http://localhost:8080/person?type=json
    2. xml:http://localhost:8080/person?type=xml
+
+## 错误处理机制
+### 前后端分离 
+![img_3.png](image%2Fimg_3.png)
+1. 只处理单类所有方法的异常
+   1. 使用注解 `@ExceptionHandler(Exception.class) @ResponseBody`
+   ```java
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public String handleException(Exception e){
+        return "单类级异常处理" + e.getMessage ();
+    }
+   ```
+   
+2. 处理所有异常
+   1. 全局异常处理包`exception`
+   2. 自定义全局处理异常类
+   ```java
+    package com.fengxin.springboot.bootweb.exception;
+
+      import org.springframework.web.bind.annotation.ExceptionHandler;
+      import org.springframework.web.bind.annotation.ResponseBody;
+      import org.springframework.web.bind.annotation.RestControllerAdvice;
+   /**
+     * @author FENGXIN
+     * @date 2024/8/27
+     * @project springboot-part
+     * @description
+   **/
+   // 添加注解 @RestControllerAdvice 或者 @ControllerAdvice
+       @RestControllerAdvice
+       public class GlobalHandleException {
+         // 异常逻辑
+          @ExceptionHandler(Exception.class)
+          @ResponseBody
+          public String exception(Exception e){
+          return "全局异常处理" + e.getMessage ();
+          }
+       }
+     ```
+   
+### 前后端不分离
+![img_2.png](image%2Fimg_2.png)
+1. `BasicErrorController.java`中
+```java
+// 返回html
+@RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
+ public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+    // 获取状态码
+     HttpStatus status = getStatus(request);
+     Map<String, Object> model = Collections
+         .unmodifiableMap(getErrorAttributes(request, getErrorAttributeOptions(request, MediaType.TEXT_HTML)));
+     response.setStatus(status.value());
+     // 根据状态码获取页面
+     ModelAndView modelAndView = resolveErrorView(request, response, status, model);
+     // 如果没有读取到 返回默认页面 classpath:template/error
+     return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
+ }
+// 返回json
+ @RequestMapping
+ public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
+     HttpStatus status = getStatus(request);
+     if (status == HttpStatus.NO_CONTENT) {
+         return new ResponseEntity<>(status);
+     }
+     Map<String, Object> body = getErrorAttributes(request, getErrorAttributeOptions(request, MediaType.ALL));
+     return new ResponseEntity<>(body, status);
+ }
+```
+2. `resolveErrorView(request, response, status, model);`
+```java
+protected ModelAndView resolveErrorView(HttpServletRequest request, HttpServletResponse response, HttpStatus status,
+                                     Map<String, Object> model) {
+    // errorViewResolvers 容器中会放入DefaultErrorViewResolvers组件
+for (ErrorViewResolver resolver : this.errorViewResolvers) {
+   ModelAndView modelAndView = resolver.resolveErrorView(request, status, model);
+   if (modelAndView != null) {
+      return modelAndView;
+   }
+}
+return null;
+}
+```
+3. `resolver.resolveErrorView(request, status, model);`
+```java
+// 模糊码 类加载时存在
+private static final Map<Series, String> SERIES_VIEWS;
+ static {
+     Map<Series, String> views = new EnumMap<>(Series.class);
+     views.put(Series.CLIENT_ERROR, "4xx");
+     views.put(Series.SERVER_ERROR, "5xx");
+     SERIES_VIEWS = Collections.unmodifiableMap(views);
+ }
+```
+```java
+@Override
+ public ModelAndView resolveErrorView(HttpServletRequest request, HttpStatus status, Map<String, Object> model) {
+    // 调用方法resolve
+     ModelAndView modelAndView = resolve(String.valueOf(status.value()), model);
+     if (modelAndView == null && SERIES_VIEWS.containsKey(status.series())) {
+         modelAndView = resolve(SERIES_VIEWS.get(status.series()), model);
+     }
+     return modelAndView;
+ }
+ // 精确码匹配路径 classpath:templates/error/精确码.html
+ private ModelAndView resolve(String viewName, Map<String, Object> model) {
+     String errorViewName = "error/" + viewName;
+     TemplateAvailabilityProvider provider = this.templateAvailabilityProviders.getProvider(errorViewName,
+             this.applicationContext);
+     if (provider != null) {
+         return new ModelAndView(errorViewName, model);
+     }
+     // 如果没有 匹配模糊码
+     return resolveResource(errorViewName, model);
+ }
+ // 匹配模糊码 classpath:templates/error/模糊码.html
+ private ModelAndView resolveResource(String viewName, Map<String, Object> model) {
+     for (String location : this.resources.getStaticLocations()) {
+         try {
+             Resource resource = this.applicationContext.getResource(location);
+             resource = resource.createRelative(viewName + ".html");
+             if (resource.exists()) {
+                 return new ModelAndView(new HtmlResourceView(resource), model);
+             }
+         }
+         catch (Exception ex) {
+             // Ignore
+         }
+     }
+     return null;
+ }
+```

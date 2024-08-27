@@ -389,3 +389,231 @@ private static final Map<Series, String> SERIES_VIEWS;
      return null;
  }
 ```
+## 嵌入式容器
+1. web starter 导入了 tomcat starter
+2. `ServletWebServerFactoryAutoConfiguration` 中
+   ```java
+   @AutoConfiguration(after = SslAutoConfiguration.class)
+   @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
+   // 导入了servlet才生效
+   @ConditionalOnClass(ServletRequest.class)
+   @ConditionalOnWebApplication(type = Type.SERVLET)
+   // 属性绑定 @ConfigurationProperties(prefix = "server", ignoreUnknownFields = true) public class ServerProperties {
+   @EnableConfigurationProperties(ServerProperties.class)
+   // 引入web服务器
+   @Import({ ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar.class,
+   ServletWebServerFactoryConfiguration.EmbeddedTomcat.class,
+   ServletWebServerFactoryConfiguration.EmbeddedJetty.class,
+   ServletWebServerFactoryConfiguration.EmbeddedUndertow.class })
+   public class ServletWebServerFactoryAutoConfiguration {
+   ```
+3. `ServletWebServerFactoryConfiguration` 嵌入式容器
+   ```java
+   @Configuration(proxyBeanMethods = false)
+   @ConditionalOnClass({ Servlet.class, Tomcat.class, UpgradeProtocol.class })
+   @ConditionalOnMissingBean(value = ServletWebServerFactory.class, search = SearchStrategy.CURRENT)
+   static class EmbeddedTomcat {
+   
+        @Bean
+        TomcatServletWebServerFactory tomcatServletWebServerFactory(
+                ObjectProvider<TomcatConnectorCustomizer> connectorCustomizers,
+                ObjectProvider<TomcatContextCustomizer> contextCustomizers,
+                ObjectProvider<TomcatProtocolHandlerCustomizer<?>> protocolHandlerCustomizers) {
+            // 创建服务器
+            TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
+            factory.getTomcatConnectorCustomizers().addAll(connectorCustomizers.orderedStream().toList());
+            factory.getTomcatContextCustomizers().addAll(contextCustomizers.orderedStream().toList());
+            factory.getTomcatProtocolHandlerCustomizers().addAll(protocolHandlerCustomizers.orderedStream().toList());
+            return factory;
+        }
+   
+    }
+   
+    /**
+     * Nested configuration if Jetty is being used.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass({ Servlet.class, Server.class, Loader.class, WebAppContext.class })
+    @ConditionalOnMissingBean(value = ServletWebServerFactory.class, search = SearchStrategy.CURRENT)
+    static class EmbeddedJetty {
+   
+        @Bean
+        JettyServletWebServerFactory jettyServletWebServerFactory(
+                ObjectProvider<JettyServerCustomizer> serverCustomizers) {
+            JettyServletWebServerFactory factory = new JettyServletWebServerFactory();
+            factory.getServerCustomizers().addAll(serverCustomizers.orderedStream().toList());
+            return factory;
+        }
+   
+    }
+   
+    /**
+     * Nested configuration if Undertow is being used.
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass({ Servlet.class, Undertow.class, SslClientAuthMode.class })
+    @ConditionalOnMissingBean(value = ServletWebServerFactory.class, search = SearchStrategy.CURRENT)
+    static class EmbeddedUndertow {
+   
+        @Bean
+        UndertowServletWebServerFactory undertowServletWebServerFactory(
+                ObjectProvider<UndertowDeploymentInfoCustomizer> deploymentInfoCustomizers,
+                ObjectProvider<UndertowBuilderCustomizer> builderCustomizers) {
+            UndertowServletWebServerFactory factory = new UndertowServletWebServerFactory();
+            factory.getDeploymentInfoCustomizers().addAll(deploymentInfoCustomizers.orderedStream().toList());
+            factory.getBuilderCustomizers().addAll(builderCustomizers.orderedStream().toList());
+            return factory;
+        }
+   
+        @Bean
+        UndertowServletWebServerFactoryCustomizer undertowServletWebServerFactoryCustomizer(
+                ServerProperties serverProperties) {
+            return new UndertowServletWebServerFactoryCustomizer(serverProperties);
+        }
+   
+    }
+   ```
+4. `TomcatServletWebServerFactory` 创建tomcat 其他服务器类似 `getWebServer`获取web服务器 并进行属性配置
+   ```java
+      @Override
+      public WebServer getWebServer(ServletContextInitializer... initializers) {
+        if (this.disableMBeanRegistry) {
+            Registry.disableRegistry();
+        }
+        Tomcat tomcat = new Tomcat();
+        File baseDir = (this.baseDirectory != null) ? this.baseDirectory : createTempDir("tomcat");
+        tomcat.setBaseDir(baseDir.getAbsolutePath());
+        for (LifecycleListener listener : this.serverLifecycleListeners) {
+            tomcat.getServer().addLifecycleListener(listener);
+        }
+        Connector connector = new Connector(this.protocol);
+        connector.setThrowOnFailure(true);
+        tomcat.getService().addConnector(connector);
+        customizeConnector(connector);
+        tomcat.setConnector(connector);
+        registerConnectorExecutor(tomcat, connector);
+        tomcat.getHost().setAutoDeploy(false);
+        configureEngine(tomcat.getEngine());
+        for (Connector additionalConnector : this.additionalTomcatConnectors) {
+            tomcat.getService().addConnector(additionalConnector);
+            registerConnectorExecutor(tomcat, additionalConnector);
+        }
+        prepareContext(tomcat.getHost(), initializers);
+        return getTomcatWebServer(tomcat);
+      }
+   ```
+5. `getWebServer`在哪里调用？重写在哪里？==> `ServletWebServerApplicationContext` ioc容器创建webserver
+   ```java
+   // ServletWebServerApplicationContext中
+   private void createWebServer() {
+        WebServer webServer = this.webServer;
+        ServletContext servletContext = getServletContext();
+        if (webServer == null && servletContext == null) {
+            StartupStep createWebServer = getApplicationStartup().start("spring.boot.webserver.create");
+            ServletWebServerFactory factory = getWebServerFactory();
+            createWebServer.tag("factory", factory.getClass().toString());
+            //调用getWebServer
+            this.webServer = factory.getWebServer(getSelfInitializer());
+            createWebServer.end();
+            getBeanFactory().registerSingleton("webServerGracefulShutdown",
+                    new WebServerGracefulShutdownLifecycle(this.webServer));
+            getBeanFactory().registerSingleton("webServerStartStop",
+                    new WebServerStartStopLifecycle(this, this.webServer));
+        }
+        else if (servletContext != null) {
+            try {
+                getSelfInitializer().onStartup(servletContext);
+            }
+            catch (ServletException ex) {
+                throw new ApplicationContextException("Cannot initialize servlet context", ex);
+            }
+        }
+        initPropertySources();
+    }
+   ```
+   2. 在ServletWebServerApplicationContext中 `onRefresh`时会创建服务器 
+   ```java
+   @Override
+   protected void onRefresh() {
+    super.onRefresh();
+    try {createWebServer();
+    } catch (Throwable ex) {
+        throw new ApplicationContextException("Unable to start web server", ex);
+    }
+   }
+   ```
+   3. `onRefresh`何时调用？在创建容器的时候 12步骤
+   ```java
+   @Override
+    public void refresh() throws BeansException, IllegalStateException {
+        this.startupShutdownLock.lock();
+        try {
+            this.startupShutdownThread = Thread.currentThread();
+   
+            StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
+   
+            // Prepare this context for refreshing.
+            prepareRefresh();
+   
+            // Tell the subclass to refresh the internal bean factory.
+            ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+   
+            // Prepare the bean factory for use in this context.
+            prepareBeanFactory(beanFactory);
+   
+            try {
+                // Allows post-processing of the bean factory in context subclasses.
+                postProcessBeanFactory(beanFactory);
+   
+                StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
+                // Invoke factory processors registered as beans in the context.
+                invokeBeanFactoryPostProcessors(beanFactory);
+                // Register bean processors that intercept bean creation.
+                registerBeanPostProcessors(beanFactory);
+                beanPostProcess.end();
+   
+                // Initialize message source for this context.
+                initMessageSource();
+   
+                // Initialize event multicaster for this context.
+                initApplicationEventMulticaster();
+   
+                // Initialize other special beans in specific context subclasses.
+                onRefresh();
+   
+                // Check for listener beans and register them.
+                registerListeners();
+   
+                // Instantiate all remaining (non-lazy-init) singletons.
+                finishBeanFactoryInitialization(beanFactory);
+   
+                // Last step: publish corresponding event.
+                finishRefresh();
+            }
+   
+            catch (RuntimeException | Error ex ) {
+                if (logger.isWarnEnabled()) {
+                    logger.warn("Exception encountered during context initialization - " +
+                            "cancelling refresh attempt: " + ex);
+                }
+   
+                // Destroy already created singletons to avoid dangling resources.
+                destroyBeans();
+   
+                // Reset 'active' flag.
+                cancelRefresh(ex);
+   
+                // Propagate exception to caller.
+                throw ex;
+            }
+   
+            finally {
+                contextRefresh.end();
+            }
+        }
+        finally {
+            this.startupShutdownThread = null;
+            this.startupShutdownLock.unlock();
+   }
+   }
+   ```

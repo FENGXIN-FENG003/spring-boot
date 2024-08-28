@@ -664,3 +664,22 @@ private static final Map<Series, String> SERIES_VIEWS;
         }
     }
    ```
+   
+### `@EnableWebMvc` 注解实现禁用boot提供的默认配置
+1. `@EnableWebMvc`
+   ```java
+   @Retention(RetentionPolicy.RUNTIME)
+   @Target({ElementType.TYPE})
+   @Documented
+   // 引入该类
+   @Import({DelegatingWebMvcConfiguration.class})
+   public @interface EnableWebMvc {
+   }
+   ```
+   
+2. `DelegatingWebMvcConfiguration` 继承自 `WebMvcConfigurationSupport`
+   ```java
+   public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
+   ```
+   
+3. `在WebMvcAutoConfiguration`中有条件注解`@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)` 这就是禁用原因

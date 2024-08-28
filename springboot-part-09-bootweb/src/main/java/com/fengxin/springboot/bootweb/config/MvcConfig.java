@@ -3,6 +3,7 @@ package com.fengxin.springboot.bootweb.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @description @Configuration + WebMvcConfigurer 在原有配置的基础下，自定义添加配置
  **/
 @Configuration
+@EnableWebMvc
 public class MvcConfig /*implements WebMvcConfigurer*/ {
     // /**
     //  * 1. implements WebMvcConfigurer

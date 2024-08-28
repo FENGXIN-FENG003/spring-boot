@@ -617,3 +617,50 @@ private static final Map<Series, String> SERIES_VIEWS;
    }
    }
    ```
+   
+## 全面接管springmvc
+### 请求上下文过滤器 `RequestContextFilter`
+1. 封装请求和响应
+   ```java
+   // WebMvcAutoConfigurationAdapter
+   @Bean
+   @ConditionalOnMissingBean({ RequestContextListener.class, RequestContextFilter.class })
+   @ConditionalOnMissingFilterBean(RequestContextFilter.class)
+   public static RequestContextFilter requestContextFilter() {
+      return new OrderedRequestContextFilter();
+   }
+   ```
+   ```java
+   // RequestContextFilter
+   @Override
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        // 将request response 包装到ServletRequestAttributes实例 在后续任意位置都可以通过该类实例获取请求和响应
+        // 2.再转换成包装实例
+        ServletRequestAttributes attributes = new ServletRequestAttributes(request, response);
+        // 初始化 封装保存当前一对请求和响应
+        initContextHolders(request, attributes);
+   
+        try {
+            filterChain.doFilter(request, response);
+        }
+        finally {
+            resetContextHolders();
+            if (logger.isTraceEnabled()) {
+                logger.trace("Cleared thread-bound request context: " + request);
+            }
+            attributes.requestCompleted();
+        }
+    }
+   ```
+   ```java
+   private void initContextHolders(HttpServletRequest request, ServletRequestAttributes requestAttributes) {
+        LocaleContextHolder.setLocale(request.getLocale(), this.threadContextInheritable);
+        // 保存 1.先从保存体获取attributes 
+        RequestContextHolder.setRequestAttributes(requestAttributes, this.threadContextInheritable);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Bound request context to thread: " + request);
+        }
+    }
+   ```

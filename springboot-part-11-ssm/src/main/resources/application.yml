@@ -1,0 +1,14 @@
+# 配置数据源
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mybatis-example
+    username: "root"
+    password: "51213002"
+# 配置mybatis
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 告诉mybatis每个接口对应的xml文件位置
+  mapper-locations: classpath:/mapper/*.xml

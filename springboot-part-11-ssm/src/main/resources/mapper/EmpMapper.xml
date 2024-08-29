@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--根据全类名绑定 -->
+<!--@MapperScan("com.fengxin.springboot.ssm.mapper")-->
+<!--mapper-locations: classpath:/mapper/*.xml-->
+<mapper namespace="com.fengxin.springboot.ssm.mapper.EmpMapper">
+
+    <resultMap id="BaseResultMap" type="com.fengxin.springboot.ssm.pojo.Emp">
+            <id property="empId" column="emp_id" jdbcType="INTEGER"/>
+            <result property="empName" column="emp_name" jdbcType="CHAR"/>
+            <result property="empSalary" column="emp_salary" jdbcType="DOUBLE"/>
+    </resultMap>
+
+    <select id="getByEmpIdBefore" resultType="com.fengxin.springboot.ssm.pojo.Emp">
+        select * from t_emp where emp_id = #{id}
+    </select>
+</mapper>

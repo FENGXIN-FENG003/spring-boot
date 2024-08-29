@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * @description
  **/
 // 添加注解 @RestControllerAdvice 或者 @ControllerAdvice
-@RestControllerAdvice
+// @RestControllerAdvice
 public class GlobalHandleException {
     /**
      * 异常逻辑

@@ -683,3 +683,55 @@ private static final Map<Series, String> SERIES_VIEWS;
    ```
    
 3. `在WebMvcAutoConfiguration`中有条件注解`@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)` 这就是禁用原因
+
+## 新特性
+### ProblemDetails
+1. RFC7807 错误信息返回新格式
+2. `WebMvcAutoConfiguration.java`
+   ```java
+   @Configuration(proxyBeanMethods = false)
+   // 默认不生效 需要配置 #spring.mvc.problemdetails.enabled=true
+   @ConditionalOnProperty(prefix = "spring.mvc.problemdetails", name = "enabled", havingValue = "true")
+   static class ProblemDetailsErrorHandlingConfiguration {
+   
+        @Bean
+        @ConditionalOnMissingBean(ResponseEntityExceptionHandler.class)
+        @Order(0)
+        /*
+        * @ControllerAdvice // 全局异常处理注解
+        * class ProblemDetailsExceptionHandler extends ResponseEntityExceptionHandler {}
+        */
+        ProblemDetailsExceptionHandler problemDetailsExceptionHandler() {
+            return new ProblemDetailsExceptionHandler();
+        }
+   
+    }
+   ```
+   
+3. `ProblemDetailsExceptionHandler` 继承自 `ResponseEntityExceptionHandler` 默认只处理下列异常
+   ```java
+   @ExceptionHandler({
+               HttpRequestMethodNotSupportedException.class,
+               HttpMediaTypeNotSupportedException.class,
+               HttpMediaTypeNotAcceptableException.class,
+               MissingPathVariableException.class,
+               MissingServletRequestParameterException.class,
+               MissingServletRequestPartException.class,
+               ServletRequestBindingException.class,
+               MethodArgumentNotValidException.class,
+               HandlerMethodValidationException.class,
+               NoHandlerFoundException.class,
+               NoResourceFoundException.class,
+               AsyncRequestTimeoutException.class,
+               ErrorResponseException.class,
+               MaxUploadSizeExceededException.class,
+               ConversionNotSupportedException.class,
+               TypeMismatchException.class,
+               HttpMessageNotReadableException.class,
+               HttpMessageNotWritableException.class,
+               MethodValidationException.class,
+               BindException.class
+           })
+       @Nullable
+       public final ResponseEntity<Object> handleException(Exception ex, WebRequest request) throws Exception{...}
+   ```

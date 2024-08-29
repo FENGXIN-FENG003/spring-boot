@@ -23,8 +23,12 @@ public class PersonServiceImpl implements PersonService {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes ();
         
         // 获取请求和响应信息
-        HttpServletRequest request = attributes.getRequest ();
-        HttpServletResponse response = attributes.getResponse ();
+        if (attributes != null) {
+            HttpServletRequest request = attributes.getRequest ();
+        }
+        if (attributes != null) {
+            HttpServletResponse response = attributes.getResponse ();
+        }
         // ...
     }
 }

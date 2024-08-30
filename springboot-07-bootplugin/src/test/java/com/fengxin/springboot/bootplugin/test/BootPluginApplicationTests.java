@@ -1,11 +1,11 @@
-package com.fengxin.springboot.springbootpart07bootplugin.test;
+package com.fengxin.springboot.bootplugin.test;
 
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpringbootPart07BootpluginApplicationTests {
+class BootPluginApplicationTests {
 
     @Test
     void contextLoads () {

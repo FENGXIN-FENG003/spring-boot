@@ -1,10 +1,10 @@
-package com.fengxin.springboot.springbootpart07bootplugin.config;
+package com.fengxin.springboot.bootplugin.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceMBean;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.Cat;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.Dog;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.User;
+import com.fengxin.springboot.bootplugin.pojo.Cat;
+import com.fengxin.springboot.bootplugin.pojo.Dog;
+import com.fengxin.springboot.bootplugin.pojo.User;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -26,7 +26,7 @@ public class ConditionConfig {
         return new Cat ();
     }
     
-    @ConditionalOnMissingClass("com.fengxin.springboot.springbootpart07bootplugin.pojo.User")
+    @ConditionalOnMissingClass("com.fengxin.springboot.bootplugin.pojo.User")
     @Bean
     public Dog missingUserDog(){
         return new Dog ();

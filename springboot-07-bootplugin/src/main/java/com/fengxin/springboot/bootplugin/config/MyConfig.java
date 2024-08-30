@@ -1,9 +1,9 @@
-package com.fengxin.springboot.springbootpart07bootplugin.config;
+package com.fengxin.springboot.bootplugin.config;
 
 import com.alibaba.druid.util.DruidDataSourceUtils;
 import com.alibaba.druid.util.DruidPasswordCallback;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.Sheep;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.User;
+import com.fengxin.springboot.bootplugin.pojo.Sheep;
+import com.fengxin.springboot.bootplugin.pojo.User;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

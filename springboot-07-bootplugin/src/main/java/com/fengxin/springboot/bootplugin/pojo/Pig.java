@@ -1,4 +1,4 @@
-package com.fengxin.springboot.springbootpart07bootplugin.pojo;
+package com.fengxin.springboot.bootplugin.pojo;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

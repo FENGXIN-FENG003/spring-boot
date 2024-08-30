@@ -53,7 +53,6 @@ public @interface SpringBootApplication {
 @Import(AutoConfigurationImportSelector.class)
 public @interface EnableAutoConfiguration {
 ```
-
 `AutoConfigurationImportSelector.java`中有`selectImports`方法 调用`getAutoConfigurationEntry`方法
 ```java
 @Override
@@ -65,7 +64,7 @@ public @interface EnableAutoConfiguration {
 		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
 	}
 ```
-`getAutoConfigurationEntry`调用`getCandidateConfigurations`，最终得到所有的`AutoConfigure`
+`getAutoConfigurationEntry`调用`getCandidateConfigurations`，最终得到所有的`AutoConfigure` 只有导入相应的场景时才会生效
 ```java
 protected AutoConfigurationEntry getAutoConfigurationEntry(AnnotationMetadata annotationMetadata) {
 		if (!isEnabled(annotationMetadata)) {
@@ -74,6 +73,7 @@ protected AutoConfigurationEntry getAutoConfigurationEntry(AnnotationMetadata an
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
 ```
+
 4. 核心参数
 在`AutoConfigure`中会有条件注解`@ConditionalOnClass(Xxx.class)`，当引入场景启动器会导入其中的类，条件成立bean组件生效
 其中核心参数会从`xxxProperties`类对象提取 且使用`@EnableConfigurationProperties(xxxProperties.class)`属性绑定

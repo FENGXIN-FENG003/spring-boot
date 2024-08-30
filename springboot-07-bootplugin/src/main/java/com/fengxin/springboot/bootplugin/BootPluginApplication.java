@@ -1,9 +1,9 @@
-package com.fengxin.springboot.springbootpart07bootplugin;
+package com.fengxin.springboot.bootplugin;
 
 import com.alibaba.druid.util.DruidPasswordCallback;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.Pig;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.Sheep;
-import com.fengxin.springboot.springbootpart07bootplugin.pojo.User;
+import com.fengxin.springboot.bootplugin.pojo.Pig;
+import com.fengxin.springboot.bootplugin.pojo.Sheep;
+import com.fengxin.springboot.bootplugin.pojo.User;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -14,10 +14,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 // scanBasePackages属性可以指定扫描包路径 但是约定大于配置 一般不建议这样做
 // @SpringBootConfiguration + @ComponentScan + @EnableAutoConfiguration = @SpringBootApplication
 @SpringBootApplication
-public class SpringbootPart07BootpluginApplication {
+public class BootPluginApplication {
     
     public static void main (String[] args) {
-        ConfigurableApplicationContext ioc = SpringApplication.run (SpringbootPart07BootpluginApplication.class , args);
+        ConfigurableApplicationContext ioc = SpringApplication.run (BootPluginApplication.class , args);
         for (String beanDefinitionName : ioc.getBeanDefinitionNames ()) {
             System.out.println ("beanDefinitionName = " + beanDefinitionName);
         }

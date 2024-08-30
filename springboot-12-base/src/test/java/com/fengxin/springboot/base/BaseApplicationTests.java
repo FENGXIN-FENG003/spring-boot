@@ -1,4 +1,4 @@
-package com.fengxin.springboot.springboot12base;
+package com.fengxin.springboot.base;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

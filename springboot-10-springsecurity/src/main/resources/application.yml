@@ -1,0 +1,12 @@
+spring:
+  datasource:
+#    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql:///mybatis-example
+    username: root
+    password: 51213002
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# 配置mybatis
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:/mapper/*.xml

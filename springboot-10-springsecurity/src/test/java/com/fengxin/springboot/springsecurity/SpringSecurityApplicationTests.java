@@ -28,4 +28,5 @@ class SpringSecurityApplicationTests {
         System.out.println (passwordEncoder.matches ("000000" , encode));
     }
     
+    
 }

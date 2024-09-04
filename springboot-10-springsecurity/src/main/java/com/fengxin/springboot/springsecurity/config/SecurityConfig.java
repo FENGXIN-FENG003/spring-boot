@@ -59,7 +59,7 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        // 调用自己的方法 最终
+        // 调用自己的UserService方法 最终校验 返回前端响应
         return authenticationConfiguration.getAuthenticationManager ();
     }
 }

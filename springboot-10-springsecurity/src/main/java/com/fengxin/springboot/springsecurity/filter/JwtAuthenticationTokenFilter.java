@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.io.IOException;
  * @project springboot-part
  * @description jwt认证过滤器 解析token 存储认证信息
  **/
+@Component
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     
     @Override

@@ -1,5 +1,7 @@
 package com.fengxin.springboot.springsecurity.filter;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.fengxin.springboot.springsecurity.service.impl.UserDetailsImpl;
 import com.fengxin.springboot.springsecurity.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.annotation.Resource;
@@ -45,12 +47,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             throw new RuntimeException (e);
         }
         // 从redis获取
-        String redisToken = stringRedisTemplate.opsForValue ().get (userId);
-        if (redisToken == null) {
+        String jsonUserDetails = stringRedisTemplate.opsForValue ().get ("login:user:" + userId);
+        UserDetailsImpl userDetails = JSONObject.parseObject (jsonUserDetails , UserDetailsImpl.class);
+        if (userDetails == null) {
             throw new RuntimeException ("用户未登录");
         }
         // 存储认证信息
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken (userId , null , null);
+        // TODO 存储权限
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken (userId , null , userDetails.getAuthorities ());
         SecurityContextHolder.getContext ().setAuthentication (authenticationToken);
         // 放行
         filterChain.doFilter (request , response);

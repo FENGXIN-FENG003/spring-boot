@@ -9,6 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author FENGXIN
  * @date 2024/9/3
@@ -31,7 +34,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException ("用户名不存在！");
         }
+        // TODO 获取权限 封装
+        List<String> authoritiesList = new ArrayList<> (List.of ("test","hello"));
         // 返回UserDetails的实现类
-        return new UserDetailsImpl (user);
+        return new UserDetailsImpl (user,authoritiesList);
     }
 }

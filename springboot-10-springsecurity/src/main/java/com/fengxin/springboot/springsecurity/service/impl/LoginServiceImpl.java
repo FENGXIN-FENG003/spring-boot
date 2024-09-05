@@ -1,5 +1,6 @@
 package com.fengxin.springboot.springsecurity.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.fengxin.springboot.springsecurity.pojo.User;
 import com.fengxin.springboot.springsecurity.service.LoginService;
 import com.fengxin.springboot.springsecurity.utils.JwtUtil;
@@ -42,8 +43,10 @@ public class LoginServiceImpl implements LoginService {
         // 根据userid生成jwt
         String id = userDetails.getUser ().getId ().toString ();
         String jwt = JwtUtil.createJWT (id);
-        // 将jwt存入redis
-        stringRedisTemplate.opsForValue ().set (id, jwt);
+        // json转换
+        String jsonUserDetails = JSONObject.toJSONString (userDetails);
+        // 将userDetails存入redis
+        stringRedisTemplate.opsForValue ().set ("login:user:" + id, jsonUserDetails);
         // 响应前端
         Map<String, String> map = new HashMap<> ();
         map.put ("token", jwt);
@@ -55,7 +58,7 @@ public class LoginServiceImpl implements LoginService {
         UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext ().getAuthentication ();
         String id = (String) authentication.getPrincipal ();
         // 根据id删除redis中的token 删除之后redis无token 通过jwt过滤器时无法获取token 从而实现拦截
-        stringRedisTemplate.delete (id);
+        stringRedisTemplate.delete ("login:user:" + id);
         return new ResponseResult (200,"退出登录成功");
     }
 }

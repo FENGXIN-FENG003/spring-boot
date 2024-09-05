@@ -1,5 +1,6 @@
 package com.fengxin.springboot.springsecurity.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
     
     @GetMapping("/hello")
+    // 权限
+    @PreAuthorize ("hasAuthority('hello')")
     public String hello(){
         return "hello";
     }

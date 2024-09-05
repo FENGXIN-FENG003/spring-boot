@@ -1,10 +1,13 @@
 package com.fengxin.springboot.redis;
 
+import com.fengxin.springboot.redis.utils.RedisConnectionFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import redis.clients.jedis.Jedis;
+
+import java.util.List;
 
 @SpringBootTest
 class SpringbootRedisApplicationTests {
@@ -16,7 +19,7 @@ class SpringbootRedisApplicationTests {
     @BeforeEach
     void before () {
         // 连接本地的 Redis 服务
-        jedis = new Jedis("192.168.187.101",6379);
+        jedis = RedisConnectionFactory.getJedis ();
         // 设置密码
         jedis.auth("51213002");
         // 选择库
@@ -29,6 +32,13 @@ class SpringbootRedisApplicationTests {
         System.out.println ("myName = " + myName);
     }
     
+    @Test
+    void testZSet(){
+        jedis.zadd ("users",89.02,"Jack");
+        jedis.zadd ("users",99.56,"Lucy");
+        List<String> user = jedis.zrangeByScore ("users" , 80 , 100);
+        System.out.println ("user = " + user);
+    }
     @AfterEach
     void after(){
         if(jedis != null){

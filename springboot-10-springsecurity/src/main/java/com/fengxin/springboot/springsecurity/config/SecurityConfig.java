@@ -1,6 +1,7 @@
 package com.fengxin.springboot.springsecurity.config;
 
 import com.fengxin.springboot.springsecurity.filter.JwtAuthenticationTokenFilter;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    // @Autowired
-    // private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
+    @Resource
+    private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
     /**
      * 使用boot提供的加密工具
      * @return BCryptPasswordEncoder
@@ -55,9 +56,9 @@ public class SecurityConfig {
                 // 不通过session创建管理SecurityContextHolder
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                )
                 // 添加自定义过滤器
-                // .addFilterBefore (jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore (jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

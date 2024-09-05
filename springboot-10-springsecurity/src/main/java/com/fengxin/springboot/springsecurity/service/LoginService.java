@@ -11,4 +11,6 @@ import com.fengxin.springboot.springsecurity.utils.ResponseResult;
  **/
 public interface LoginService {
     ResponseResult login (User user) throws Exception;
+    
+    ResponseResult logout ();
 }

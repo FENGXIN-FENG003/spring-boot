@@ -5,9 +5,11 @@ import com.fengxin.springboot.springsecurity.service.LoginService;
 import com.fengxin.springboot.springsecurity.utils.JwtUtil;
 import com.fengxin.springboot.springsecurity.utils.ResponseResult;
 import jakarta.annotation.Resource;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -23,6 +25,8 @@ import java.util.Map;
 public class LoginServiceImpl implements LoginService {
     @Resource
     private AuthenticationManager authenticationManager;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     public ResponseResult login (User user) throws Exception {
         // 调用 AuthenticationManager 的 authenticate 方法进行认证
@@ -39,10 +43,19 @@ public class LoginServiceImpl implements LoginService {
         String id = userDetails.getUser ().getId ().toString ();
         String jwt = JwtUtil.createJWT (id);
         // 将jwt存入redis
-        // redisTemplate.opsForValue ().set (id, jwt);
+        stringRedisTemplate.opsForValue ().set (id, jwt);
         // 响应前端
         Map<String, String> map = new HashMap<> ();
         map.put ("token", jwt);
         return new ResponseResult(200, "登录成功", map);
+    }
+    
+    @Override
+    public ResponseResult logout () {
+        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext ().getAuthentication ();
+        String id = (String) authentication.getPrincipal ();
+        // 根据id删除redis中的token 删除之后redis无token 通过jwt过滤器时无法获取token 从而实现拦截
+        stringRedisTemplate.delete (id);
+        return new ResponseResult (200,"退出登录成功");
     }
 }

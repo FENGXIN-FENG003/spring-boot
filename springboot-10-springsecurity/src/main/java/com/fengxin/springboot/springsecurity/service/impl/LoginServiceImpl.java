@@ -5,7 +5,6 @@ import com.fengxin.springboot.springsecurity.service.LoginService;
 import com.fengxin.springboot.springsecurity.utils.JwtUtil;
 import com.fengxin.springboot.springsecurity.utils.ResponseResult;
 import jakarta.annotation.Resource;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,8 +23,6 @@ import java.util.Map;
 public class LoginServiceImpl implements LoginService {
     @Resource
     private AuthenticationManager authenticationManager;
-    @Resource
-    private RedisTemplate<String,String> redisTemplate;
     @Override
     public ResponseResult login (User user) throws Exception {
         // 调用 AuthenticationManager 的 authenticate 方法进行认证

@@ -19,7 +19,7 @@ import java.io.IOException;
  * @project springboot-part
  * @description jwt认证过滤器 解析token 存储认证信息
  **/
-@Component
+// @Component
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     
     @Override

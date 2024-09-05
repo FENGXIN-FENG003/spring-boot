@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis;
 import java.util.List;
 
 @SpringBootTest
-class SpringbootRedisApplicationTests {
+class RedisJedisTests {
     private Jedis jedis;
     
     /**

@@ -1,5 +1,6 @@
 package com.fengxin.springboot.redis;
 
+import com.fengxin.springboot.redis.pojo.Employee;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,5 +21,12 @@ public class RedisSpringDataTests {
     void testString(){
         redisTemplate.opsForValue ().set("name","枫叶");
         System.out.println (redisTemplate.opsForValue ().get ("name"));
+        redisTemplate.opsForValue ().set("Employee",new Employee ("feng",18));
+        /* {
+            "@class": "com.fengxin.springboot.redis.pojo.Employee",
+                "name": "feng",
+                "age": 18
+        } */
+        System.out.println (redisTemplate.opsForValue ().get ("Employee"));
     }
 }

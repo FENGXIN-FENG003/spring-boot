@@ -4,6 +4,7 @@ import com.fengxin.springboot.springsecurity.filter.JwtAuthenticationTokenFilter
 import com.fengxin.springboot.springsecurity.handler.AccessDeniedException;
 import com.fengxin.springboot.springsecurity.handler.AuthenticationException;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.net.URI;
 
 /**
  * @author FENGXIN
@@ -28,7 +33,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
  **/
 @Configuration
 @EnableWebSecurity
-@CrossOrigin
 // 配置授权
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
@@ -84,5 +88,18 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         // 调用自己的UserService方法 最终校验 返回前端响应
         return authenticationConfiguration.getAuthenticationManager ();
+    }
+    
+    /**
+     * 配置跨域
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration ();
+        configuration.setAllowCredentials(true);
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        return request -> configuration;
     }
 }

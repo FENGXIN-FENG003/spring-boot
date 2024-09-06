@@ -4,6 +4,8 @@ import com.fengxin.springboot.springsecurity.pojo.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
 * @author FENGXIN
 * @description 针对表【sys_user(用户表)】的数据库操作Mapper
@@ -12,7 +14,7 @@ import org.apache.ibatis.annotations.Mapper;
 */
 
 public interface UserMapper extends BaseMapper<User> {
-
+    List<String> selectPermByUserId(Long id);
 }
 
 

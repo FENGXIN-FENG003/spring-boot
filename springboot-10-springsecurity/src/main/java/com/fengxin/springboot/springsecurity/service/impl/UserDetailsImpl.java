@@ -26,7 +26,7 @@ public class UserDetailsImpl implements UserDetails {
     private User user;
     // 存储权限信息
     private List<String> permissions;
-    // 存储权限信息
+    // 存储权限信息 将来从这里获取权限
     @JSONField(serialize = false)
     private List<SimpleGrantedAuthority> authorities = new ArrayList<> ();
     
@@ -41,7 +41,6 @@ public class UserDetailsImpl implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities () {
-        
         for (String permission : permissions) {
             SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority (permission);
             authorities.add (simpleGrantedAuthority);

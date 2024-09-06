@@ -3,7 +3,7 @@ package com.fengxin.springboot.springsecurity.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fengxin.springboot.springsecurity.mapper.UserMapper;
 import com.fengxin.springboot.springsecurity.pojo.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.annotation.Resource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,7 +21,7 @@ import java.util.List;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     // 注入UserMapper
-    @Autowired
+    @Resource
     private UserMapper userMapper;
     
     @Override
@@ -34,8 +34,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException ("用户名不存在！");
         }
-        // TODO 获取权限 封装
-        List<String> authoritiesList = new ArrayList<> (List.of ("test","hello"));
+        // List<String> authoritiesList = new ArrayList<> (List.of ("test","hello"));
+        List<String> authoritiesList = userMapper.selectPermByUserId (user.getId ());
         // 返回UserDetails的实现类
         return new UserDetailsImpl (user,authoritiesList);
     }

@@ -15,7 +15,7 @@ public class HelloController {
     
     @GetMapping("/hello")
     // 权限
-    @PreAuthorize ("hasAuthority('hello')")
+    @PreAuthorize ("hasAuthority('fx:dept:manager')")
     public String hello(){
         return "hello";
     }

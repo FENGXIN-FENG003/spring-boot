@@ -1,8 +1,11 @@
 package com.fengxin.springboot.springsecurity.utils;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * @author FENGXIN
+ */
 public class WebUtils
 {
     /**

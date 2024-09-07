@@ -1,1 +1,1 @@
-org.springframework.boot.SpringApplicationRunListener=com.fengxin.springboot.base.listener.MyListener
+org.springframework.boot.SpringApplicationRunListener=com.hmdp.springboot.base.listener.MyListener

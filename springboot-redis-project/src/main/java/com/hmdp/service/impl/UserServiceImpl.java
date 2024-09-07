@@ -1,6 +1,8 @@
 package com.hmdp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,6 +22,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,29 +69,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (loginFormPhone == null || RegexUtils.isPhoneInvalid (loginFormPhone)){
             return Result.fail ("手机号错误");
         }
-        // 校验验证码
-        Object attribute = session.getAttribute (loginFormPhone);
-        String sessionCode = attribute.toString ();
-        if (attribute == null || !sessionCode.equals (loginForm.getCode ())){
+        // 从redis校验验证码
+        String code = stringRedisTemplate.opsForValue ().get (RedisConstants.LOGIN_CODE_KEY + loginFormPhone);
+        if (code == null || !code.equals (loginForm.getCode ())){
             return Result.fail ("验证码错误");
         }
         // 校验成功 在数据库查询此用户
-        User user = createUser (loginFormPhone);
         QueryWrapper<User> queryWrapper = new QueryWrapper<> ();
         queryWrapper.eq ("phone",loginFormPhone);
         User selecteUser = query ().getBaseMapper ().selectOne (queryWrapper);
         if (selecteUser == null){
             // 不存在 注册
-            save (user);
+            selecteUser = createUser (loginFormPhone);
+            save (selecteUser);
         }
-        // 保存dto到session中
-        session.setAttribute ("user", BeanUtil.copyProperties (selecteUser, UserDTO.class));
-        // 返回ok
-        return Result.ok ();
+        // 保存dto到redis中
+        // 1.生成token 未来前端访问都将携带 登录验证
+        String token = String.valueOf (UUID.fastUUID ());
+        // 2.将user转换为HashMap存储
+        // 避免类型转换错误
+        Map<String, Object> userMap = BeanUtil.beanToMap (
+                BeanUtil.copyProperties (selecteUser, UserDTO.class)
+                , new HashMap<> ()
+                , CopyOptions.create ()
+                        .setIgnoreNullValue (true)
+                        .setFieldValueEditor (
+                                /* setFieldValueEditor()：设置CopyOptions对象的一个属性，用于自定义属性值的转换方式。这里使用了lambda表达式，将属性值转换为字符串类型。
+                                fieldName：表示当前要转换的属性名。
+                                fieldValue：表示当前要转换的属性值。
+                                fieldValue.toString()：将属性值转换为字符串类型。 */
+                                (fieldName, fieldValue) -> fieldValue.toString ()));
+        
+        
+        // 3.存储到redis
+        stringRedisTemplate.opsForHash ().putAll (RedisConstants.LOGIN_USER_KEY + token,userMap);
+        // 4.设置有效时间
+        stringRedisTemplate.expire (RedisConstants.LOGIN_USER_KEY + token,RedisConstants.LOGIN_USER_TTL,TimeUnit.MINUTES);
+        // redis保存时间是固定的 自开始就计算 不因为在此期间访问接口就刷新保存时间 因此在拦截器进行保存时间刷新
+        // 返回token
+        return Result.ok (token);
     }
     
     /**
-     * 创建待存入或查询的user
+     * 创建待存入的user
      */
     public User createUser(String loginFormPhone){
         User user = new User ();

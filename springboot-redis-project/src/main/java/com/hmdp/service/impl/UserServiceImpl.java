@@ -1,12 +1,12 @@
 package com.hmdp.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Enumeration;
 
 /**
  * <p>
@@ -44,7 +43,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         
         // 校验通过 生成验证码
         String code = RandomUtil.randomNumbers (6);
-        // 保存验证码到session
+        // 保存验证码到redis
         session.setAttribute (phone,code);
         // 返回验证码
         log.info ("验证码生成成功 {}",code);
@@ -68,11 +67,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             return Result.fail ("验证码错误");
         }
         // 校验成功 在数据库查询此用户
-        User user = new User ();
-        user.setPhone (loginFormPhone);
-        user.setNickName (SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomString (10));
-        user.setCreateTime (LocalDateTime.now ());
-        user.setUpdateTime (LocalDateTime.now ());
+        User user = createUser (loginFormPhone);
         QueryWrapper<User> queryWrapper = new QueryWrapper<> ();
         queryWrapper.eq ("phone",loginFormPhone);
         User selecteUser = query ().getBaseMapper ().selectOne (queryWrapper);
@@ -80,9 +75,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 不存在 注册
             save (user);
         }
-        // 保存到session中
-        session.setAttribute ("user",user);
+        // 保存dto到session中
+        session.setAttribute ("user", BeanUtil.copyProperties (selecteUser, UserDTO.class));
         // 返回ok
         return Result.ok ();
+    }
+    
+    /**
+     * 创建待存入或查询的user
+     */
+    public User createUser(String loginFormPhone){
+        User user = new User ();
+        user.setPhone (loginFormPhone);
+        user.setNickName (SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomString (10));
+        user.setCreateTime (LocalDateTime.now ());
+        user.setUpdateTime (LocalDateTime.now ());
+        return user;
     }
 }

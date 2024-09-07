@@ -10,13 +10,17 @@ import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
+import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.SystemConstants;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -29,7 +33,8 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
-    
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     /**
      * 发送验证码
      */
@@ -43,8 +48,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         
         // 校验通过 生成验证码
         String code = RandomUtil.randomNumbers (6);
-        // 保存验证码到redis
-        session.setAttribute (phone,code);
+        // 保存验证码到redis 并设置有效期两分钟
+        stringRedisTemplate.opsForValue ().set (RedisConstants.LOGIN_CODE_KEY + phone,code,RedisConstants.LOGIN_CODE_TTL, TimeUnit.MINUTES);
         // 返回验证码
         log.info ("验证码生成成功 {}",code);
         return Result.ok ();

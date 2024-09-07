@@ -55,7 +55,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         
         http.authorizeHttpRequests((authorizeHttpRequests) -> {
-                    // 放行我自己的登录接口和swagger接口，不需要认证和授权
+                    // 放行我自己的登录接口，不需要认证和授权
                     authorizeHttpRequests
                             .requestMatchers("/user/login")
                             .permitAll()
@@ -84,7 +84,7 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        // 调用自己的UserService方法 最终校验 返回前端响应
+        // 调用自己的UserService方法 最终校验获取UserDetails 返回jwt前端响应
         return authenticationConfiguration.getAuthenticationManager ();
     }
     

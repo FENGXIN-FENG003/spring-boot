@@ -46,13 +46,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             throw new RuntimeException (e);
         }
-        // 从redis获取
+        // 从redis获取UserDetails
         String jsonUserDetails = stringRedisTemplate.opsForValue ().get ("login:user:" + userId);
         UserDetailsImpl userDetails = JSONObject.parseObject (jsonUserDetails , UserDetailsImpl.class);
+        // 校验用户是否登录
         if (userDetails == null) {
             throw new RuntimeException ("用户未登录");
         }
-        // 存储认证信息
+        // 存储认证信息 用户id + 权限
         UsernamePasswordAuthenticationToken authenticationToken = new
                 UsernamePasswordAuthenticationToken (userId , null , userDetails.getAuthorities ());
         SecurityContextHolder.getContext ().setAuthentication (authenticationToken);

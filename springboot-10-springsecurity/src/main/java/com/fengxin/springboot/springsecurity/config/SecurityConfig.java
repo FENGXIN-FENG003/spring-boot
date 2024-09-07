@@ -59,6 +59,9 @@ public class SecurityConfig {
                     authorizeHttpRequests
                             .requestMatchers("/user/login")
                             .permitAll()
+                            // 配置接口访问权限（在配置文件）
+                            .requestMatchers ("/user/test")
+                            .hasAuthority ("fx:dept:test")
                             // 其他请求都需要授权后才能使用(如果不写会被过滤器拦截除上面配置请求的所有请求)
                             .anyRequest()
                             .authenticated();

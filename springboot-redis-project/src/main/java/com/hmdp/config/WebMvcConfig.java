@@ -23,7 +23,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor (new LoginInterceptor())
                 .excludePathPatterns (
                         "/user/login"
-                        ,"/user/code").order (1);
+                        ,"/user/code"
+                        ,"/shop"
+                ).order (1);
         registry.addInterceptor (new AllRefreshInterceptor (stringRedisTemplate)).addPathPatterns ("/**")
                 .order (0);
     }

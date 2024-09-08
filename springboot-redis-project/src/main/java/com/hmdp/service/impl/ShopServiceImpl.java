@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,28 +34,78 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     
     @Override
     public Result queryShopById (Long id) {
+        // 缓存穿透
+        // Shop shop = getDataThrough (id);
+        
+        // 缓存击穿
+        // Shop shop = getDataPunchThrough (id);
+    }
+    
+    /**
+     * 缓存穿透：查询一个不存在的数据，由于缓存不命中，将去查询数据库，但数据库中也不存在，这将导致每次查询都会去查询数据库，造成缓存穿透。
+     * @param id 商户id
+     * @return Shop
+     */
+    public Shop getDataThrough(Long id){
         String shopId = RedisConstants.CACHE_SHOP_KEY + id;
         // 1 先在redis查找缓存
         String shopData = stringRedisTemplate.opsForValue ().get (shopId);
-        // 2 存在 返回数据
+        // 2 存在字符串 返回数据
         if (StringUtils.hasText (shopData)) {
             // 转换为对象
-            Shop shop = JSONObject.parseObject (shopData,Shop.class);
-            return Result.ok (shop);
+            return JSONObject.parseObject (shopData,Shop.class);
+        }
+        // 存在字符串 但是id为“”（redis存储的空数据为""）
+        if (Objects.equals (shopData , "")){
+            // 直接返回错误信息
+            return null;
         }
         // 3 不存在
         // 3.1 查询数据库
         Shop shopById = getById (id);
         // 3.2 不存在 返回错误信息
         if (shopById == null) {
-            return Result.fail ("没有商户信息");
+            // 防止缓存穿透 将空值写入redis
+            stringRedisTemplate.opsForValue ().set (shopId, "", RedisConstants.CACHE_NULL_TTL, TimeUnit.MINUTES);
+            return null;
         }
         // 3.3 存在 将数据存入redis 并设置有效时间 手动实现数据库和缓存的数据一致性
         stringRedisTemplate.opsForValue ().set (shopId,JSONObject.toJSONString (shopById),RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
         // 3.4 返回数据
-        return Result.ok (shopById);
+        return shopById;
     }
     
+    /**
+     * 缓存击穿：缓存中没有但数据库中有的数据（一般是缓存时间到期），这时由于并发用户特别多，同时读缓存没读到数据，又同时去数据库去取，引起数据库压力瞬间增大，造成过大压力
+     */
+    public Shop getDataPunchThrough(Long id){
+        String shopId = RedisConstants.CACHE_SHOP_KEY + id;
+        // 1 先在redis查找缓存
+        String shopData = stringRedisTemplate.opsForValue ().get (shopId);
+        // 2 存在字符串 返回数据
+        if (StringUtils.hasText (shopData)) {
+            // 转换为对象
+            return JSONObject.parseObject (shopData,Shop.class);
+        }
+        // 存在字符串 但是id为“”（redis存储的空数据为""）
+        if (Objects.equals (shopData , "")){
+            // 直接返回错误信息
+            return null;
+        }
+        // 3 不存在
+        // 3.1 查询数据库
+        Shop shopById = getById (id);
+        // 3.2 不存在 返回错误信息
+        if (shopById == null) {
+            // 防止缓存穿透 将空值写入redis
+            stringRedisTemplate.opsForValue ().set (shopId, "", RedisConstants.CACHE_NULL_TTL, TimeUnit.MINUTES);
+            return null;
+        }
+        // 3.3 存在 将数据存入redis 并设置有效时间 手动实现数据库和缓存的数据一致性
+        stringRedisTemplate.opsForValue ().set (shopId,JSONObject.toJSONString (shopById),RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        // 3.4 返回数据
+        return shopById;
+    }
     /*
     保证缓存和数据库数据一致性 主动更新 先操作数据库 再删除缓存 并设置缓存超时及时更新缓存数据
     缓存命中则直接返回数据

@@ -10,9 +10,11 @@ class SpringbootRedisProjectApplicationTests {
     @Resource
     private ShopServiceImpl shopService;
     
-    // @Test
-    // void saveLogicTimeData () throws InterruptedException {
-    //     shopService.saveLogicData (1L,10L);
-    // }
+    @Test
+    void a(){}
+    @Test
+    void saveLogicTimeData () throws InterruptedException {
+        shopService.saveLogicData (1L,10L);
+    }
     
 }

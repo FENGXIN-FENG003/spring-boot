@@ -8,6 +8,7 @@ import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.RedisCache;
 import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RedisData;
 import jakarta.annotation.Resource;
@@ -36,14 +37,15 @@ import java.util.concurrent.TimeUnit;
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-    
+    @Resource
+    private RedisCache redisCache;
     @Override
     public Result queryShopById (Long id) {
-        // 缓存穿透
-        // Shop shop = getDataThrough (id);
+        // // 缓存穿透
+        // Shop shop = redisCache.getDataThrough (RedisConstants.CACHE_SHOP_KEY,id, Shop.class,this::getById,RedisConstants.CACHE_SHOP_TTL,TimeUnit.MINUTES);
         
         // 基于互斥锁解决缓存击穿
-        Shop shop = logicSolvePunchThrough (id);
+        Shop shop = redisCache.logicSolvePunchThrough (RedisConstants.CACHE_SHOP_KEY , id , Shop.class , this::getById , RedisConstants.CACHE_SHOP_TTL , TimeUnit.MINUTES);
         if (shop == null) {
             return Result.fail ("商户信息错误");
         }
@@ -220,7 +222,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     public void delLock(Long id){
         // 释放🔒
         // 数据库查询数据成功 缓存更新成功 释放🔒
-        Boolean flag = stringRedisTemplate.delete (RedisConstants.LOCK_SHOP_KEY + id);
+        stringRedisTemplate.delete (RedisConstants.LOCK_SHOP_KEY + id);
     }
     /*
     保证缓存和数据库数据一致性 主动更新 先操作数据库 再删除缓存 并设置缓存超时及时更新缓存数据
@@ -258,6 +260,6 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         redisData.setExpireTime (LocalDateTime.now ().plusSeconds (expireTime));
         // 存入redis缓存
         stringRedisTemplate.opsForValue ().set (RedisConstants.CACHE_SHOP_KEY + id,JSONObject.toJSONString (redisData));
-        log.info ("存入redis数据成功:" + byId.getName ());
+        log.info ("存入redis数据成功:{}" , byId.getName ());
     }
 }

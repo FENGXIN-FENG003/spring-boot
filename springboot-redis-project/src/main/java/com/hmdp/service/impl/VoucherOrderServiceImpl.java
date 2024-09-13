@@ -50,10 +50,22 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail ("优惠券已经抢光！");
         }
         // 扣减库存
-        seckillVoucher.setStock (seckillVoucher.getStock () - 1);
-        LambdaQueryWrapper<SeckillVoucher> lambdaQueryWrapper = new LambdaQueryWrapper<> ();
-        lambdaQueryWrapper.eq (SeckillVoucher::getVoucherId,voucherId);
-        voucherOrderService.update (seckillVoucher,lambdaQueryWrapper);
+        // boolean success = voucherOrderService
+        //         .update ()
+        //         .setSql ("stock = stock - 1")
+        //         .eq ("voucher_id" , voucherId)
+        //         .gt ("stock",0)
+        //         .update ();
+        LambdaUpdateWrapper<SeckillVoucher> lambdaUpdateWrapper = new LambdaUpdateWrapper<> ();
+        lambdaUpdateWrapper
+                .setSql ("stock = stock - 1")
+                // 设置乐观锁
+                .gt (SeckillVoucher::getStock,0)
+                .eq (SeckillVoucher::getVoucherId,voucherId);
+        boolean update = voucherOrderService.update (lambdaUpdateWrapper);
+        if (!update) {
+            return Result.fail ("抢购失败");
+        }
         // 设置订单信息
         VoucherOrder voucherOrder = new VoucherOrder ();
         voucherOrder.setVoucherId (voucherId);

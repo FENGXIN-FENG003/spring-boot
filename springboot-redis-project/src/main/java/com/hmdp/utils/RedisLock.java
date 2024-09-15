@@ -18,7 +18,7 @@ public class RedisLock implements ILock{
     private String name;
     private static final String LOCK_KEYPREFIX = "lock:";
     // 唯一线程id 解决误删🔒问题
-    private static final String ID_KEYPREFIX = UUID.fastUUID ().toString () + "-";
+    private static final String ID_KEYPREFIX = UUID.fastUUID () + "-";
     
     public RedisLock (StringRedisTemplate stringRedisTemplate , String name) {
         this.stringRedisTemplate = stringRedisTemplate;

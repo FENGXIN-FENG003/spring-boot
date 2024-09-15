@@ -2,6 +2,7 @@ package com.hmdp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.hmdp.config.RedissonConfig;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.VoucherOrder;
@@ -13,8 +14,11 @@ import com.hmdp.utils.RedisGenerateId;
 import com.hmdp.utils.RedisLock;
 import com.hmdp.utils.UserHolder;
 import jakarta.annotation.Resource;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.aop.framework.AopProxyFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +41,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private RedisGenerateId redisGenerateId;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RedissonClient redissonClient;
     
     /**
      * 实现秒杀优惠券下单功能
@@ -64,8 +70,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         
         // 解决分布式|集群问题 使用同一个🔒资源监视 redis实现 set nx ex
         // 🔒用户 而不是🔒方法 防止串行化
-        RedisLock redisLock = new RedisLock (stringRedisTemplate,"order" + userId);
-        boolean tryLock = redisLock.tryLock (1800);
+        // RedisLock redisLock = new RedisLock (stringRedisTemplate,"order" + userId);
+        // boolean tryLock = redisLock.tryLock (1800);
+        // 基于redisson实现🔒
+        RLock lock = redissonClient.getLock ("lock:order:" + userId);
+        boolean tryLock = lock.tryLock ();
         if(!tryLock){
             return Result.fail ("您已经拥有过此优惠券！");
         }
@@ -78,7 +87,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             throw new RuntimeException (e);
         } finally {
             // 释放锁
-            redisLock.unLock ();
+            lock.unlock ();
         }
         // }
        

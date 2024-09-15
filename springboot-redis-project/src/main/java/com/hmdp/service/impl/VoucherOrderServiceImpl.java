@@ -10,10 +10,12 @@ import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisGenerateId;
+import com.hmdp.utils.RedisLock;
 import com.hmdp.utils.UserHolder;
 import jakarta.annotation.Resource;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.aop.framework.AopProxyFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +35,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private ISeckillVoucherService voucherOrderService;
     @Resource
     private RedisGenerateId redisGenerateId;
-    
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     
     /**
      * 实现秒杀优惠券下单功能
@@ -56,12 +59,28 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 一人一单即对象 高并发环境下 如果🔒方法 每个用户就是串行化购买 因此需要🔒具体用户 即🔒用户id
         // 从拦截器存入的数据获取user_id
         Long userId = UserHolder.getUser ().getId ();
-        // 2.使用intern 从常量池返回同一个字符串 确保是相同唯一对象 而不是同一个用户不同的对象 这样会导致上锁逻辑错误
-        synchronized (userId.toString ().intern ()){
+        // // 2.使用intern 从常量池返回同一个字符串 确保是相同唯一对象 而不是同一个用户不同的对象 这样会导致上锁逻辑错误
+        // synchronized (userId.toString ().intern ()){
+        
+        // 解决分布式|集群问题 使用同一个🔒资源监视 redis实现 set nx ex
+        // 🔒用户 而不是🔒方法 防止串行化
+        RedisLock redisLock = new RedisLock (stringRedisTemplate,"order" + userId);
+        boolean tryLock = redisLock.tryLock (1800);
+        if(!tryLock){
+            return Result.fail ("您已经拥有过此优惠券！");
+        }
+        try {
             // 3.这里是this调用 不会生效事务 需要代理对象操作 即从spring中获取代理调用此方法 实现事务
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy ();
             return proxy.createVoucherOrder (voucherId);
+        } catch (IllegalStateException e) {
+            // try  finally  事务可以生效，因为没有捕获异常。如果catch捕获了异常，需要抛出RuntimeException类型异常，不然事务失效。
+            throw new RuntimeException (e);
+        } finally {
+            // 释放锁
+            redisLock.unLock ();
         }
+        // }
        
     }
     

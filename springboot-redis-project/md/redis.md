@@ -19,3 +19,8 @@
 ![img_15.png](img_15.png)
 ### 集群锁问题
 ![img_16.png](img_16.png)
+## 分布式🔒
+![img_17.png](img_17.png)
+![img_18.png](img_18.png)
+![img_19.png](img_19.png)
+![img_20.png](img_20.png)

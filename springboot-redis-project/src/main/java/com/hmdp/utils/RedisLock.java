@@ -1,5 +1,6 @@
 package com.hmdp.utils;
 
+import cn.hutool.core.lang.UUID;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,8 @@ public class RedisLock implements ILock{
     // 业务名
     private String name;
     private static final String LOCK_KEYPREFIX = "lock:";
+    // 唯一线程id 解决误删🔒问题
+    private static final String ID_KEYPREFIX = UUID.fastUUID ().toString () + "-";
     
     public RedisLock (StringRedisTemplate stringRedisTemplate , String name) {
         this.stringRedisTemplate = stringRedisTemplate;
@@ -25,12 +28,20 @@ public class RedisLock implements ILock{
     @Override
     public boolean tryLock (long timeout) {
         // 获取线程id
-        long threadId = Thread.currentThread ().threadId ();
-        return Boolean.TRUE.equals (stringRedisTemplate.opsForValue ().setIfAbsent (LOCK_KEYPREFIX + name, String.valueOf (threadId) ,timeout, TimeUnit.SECONDS));
+        String threadId = ID_KEYPREFIX + Thread.currentThread ().threadId ();
+        // 设置超时 防止redis宕机不释放锁
+        return Boolean.TRUE.equals (stringRedisTemplate.opsForValue ().setIfAbsent (LOCK_KEYPREFIX + name, threadId ,timeout, TimeUnit.SECONDS));
     }
     
     @Override
     public void unLock () {
-        stringRedisTemplate.delete (LOCK_KEYPREFIX + name);
+        // 获取当前redis的🔒
+        String currentLock = stringRedisTemplate.opsForValue ().get (LOCK_KEYPREFIX + name);
+        // 该线程的锁id
+        String threadId = ID_KEYPREFIX + Thread.currentThread ().threadId ();
+        if (currentLock.equals (threadId)) {
+            stringRedisTemplate.delete (LOCK_KEYPREFIX + name);
+        }
+        // 不一致不管 结束
     }
 }

@@ -35,5 +35,7 @@
 ![img_26.png](img_26.png)
 ![img_27.png](img_27.png)
 ### 分布式🔒原理待续
-### 优化
 ![img_28.png](img_28.png)
+### 优化
+![img_29.png](img_29.png)
+![img_30.png](img_30.png)

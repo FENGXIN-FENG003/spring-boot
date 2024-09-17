@@ -28,6 +28,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         ,"/shop/**"
                         ,"/voucher/**"
                         ,"/voucher-order/**"
+                        ,"/blog/**"
                 ).order (1);
         registry.addInterceptor (new AllRefreshInterceptor (stringRedisTemplate)).addPathPatterns ("/**")
                 .order (0);

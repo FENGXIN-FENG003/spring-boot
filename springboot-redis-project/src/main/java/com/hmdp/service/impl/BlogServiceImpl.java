@@ -145,6 +145,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         String idStr = StrUtil.join ("," , idList);
         List<UserDTO> userDTO = userService.query ()
                 .in ("id" , idList)
+                // 确保查询顺序正确 （in）
                 .last ("order by field(id," + idStr + ")").list ()
                 .stream ().map (user -> BeanUtil.copyProperties (user, UserDTO.class)).toList ();
         // 返回

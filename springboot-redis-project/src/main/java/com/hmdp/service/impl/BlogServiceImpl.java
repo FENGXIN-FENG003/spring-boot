@@ -165,15 +165,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         blog.setUserId(user.getId());
         // 保存探店博文
         boolean save = save (blog);
-        // 保存blog成功后 查询所有粉丝id 推送blog
+        // 保存blog成功后 查询所有粉丝id 存入redis 一个粉丝拥有一个收件箱 存放该用户的id和时间戳 推送blog
         if (!save) {
             return Result.fail ("新增笔记失败");
         }
+        // 查询所有粉丝id
         List<Follow> fans = followService.query ().eq ("follow_user_id" , user.getId ()).list ();
         // 推送
         if (fans == null || fans.isEmpty ()) {
             return Result.ok (blog);
         }
+        // 粉丝id存入redis
         fans.forEach (follow -> {
             Long fansId = follow.getUserId ();
             stringRedisTemplate.opsForZSet ().add (RedisConstants.FEED_KEY + fansId,blog.getUserId ().toString (),System.currentTimeMillis ());
@@ -198,6 +200,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         List<Long> idList = new ArrayList<> (typedTuples.size ());
         long minTime = 0;
         int offsetCount = 1;
+        // 根据关注的用户id和时间戳
         for (ZSetOperations.TypedTuple<String> typedTuple : typedTuples) {
             // 3.2查询userId
             idList.add(Long.valueOf (typedTuple.getValue ()));
@@ -211,7 +214,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 offsetCount = 1;
             }
         }
-        // 3.5查询blog
+        // 3.5查询关注的用户blog
         String idStr = StrUtil.join ("," , idList);
         List<Blog> blogs = query ().in ("user_id" , idList).last ("order by field(id," + idStr + ")").list ();
         // 3.6完整blog数据

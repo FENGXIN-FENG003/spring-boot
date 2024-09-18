@@ -41,3 +41,5 @@
 ![img_30.png](img_30.png)
 ## 关注
 ![img_31.png](img_31.png)
+## 签到
+![img_32.png](img_32.png)

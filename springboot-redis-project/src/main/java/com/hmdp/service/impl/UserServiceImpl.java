@@ -5,7 +5,6 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
@@ -16,14 +15,18 @@ import com.hmdp.service.IUserService;
 import com.hmdp.utils.RedisConstants;
 import com.hmdp.utils.RegexUtils;
 import com.hmdp.utils.SystemConstants;
+import com.hmdp.utils.UserHolder;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -109,6 +112,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // redis保存时间是固定的 自开始就计算 不因为在此期间访问接口就刷新保存时间 因此在拦截器进行保存时间刷新
         // 返回token
         return Result.ok (token);
+    }
+    
+    /**
+     * 签到功能
+     */
+    @Override
+    public Result sign () {
+        // 获取登录用户
+        Long userId = UserHolder.getUser ().getId ();
+        // 获取当前日期
+        LocalDateTime now = LocalDateTime.now ();
+        int dayOfMonth = now.getDayOfMonth ();
+        // 前缀
+        String prefix = now.format (DateTimeFormatter.ofPattern ("yyyy-MM"));
+        // 存入redis BitMap spring使用String实现
+        stringRedisTemplate.opsForValue ().setBit (RedisConstants.USER_SIGN_KEY + userId + prefix,dayOfMonth - 1,true);
+        return Result.ok ();
+    }
+    
+    /**
+     * 统计连续签到天数
+     */
+    @Override
+    public Result signCount () {
+        // 获取登录用户
+        Long userId = UserHolder.getUser ().getId ();
+        // 获取当前日期
+        LocalDateTime now = LocalDateTime.now ();
+        int dayOfMonth = now.getDayOfMonth ();
+        // 前缀
+        String prefix = now.format (DateTimeFormatter.ofPattern ("yyyy-MM"));
+        // 获取比特位
+        List<Long> longs = stringRedisTemplate.opsForValue ().bitField (RedisConstants.USER_SIGN_KEY + userId + prefix
+                , BitFieldSubCommands.create ().get (BitFieldSubCommands.BitFieldType.unsigned (dayOfMonth)).valueAt (0));
+        if (longs == null || longs.isEmpty ()){
+            return Result.ok ();
+        }
+        Long bit = longs.getFirst ();
+        if (bit == null){
+            return Result.ok ();
+        }
+        // 循环遍历 统计签到次数
+        int count = 0;
+        while ((bit & 1) == 1){
+            // 如果&1 == 0 结束统计
+            if ((bit & 1) == 0){
+                break;
+            }else {
+                count++;
+                bit >>>= 1;
+            }
+        }
+        return Result.ok (count);
     }
     
     /**

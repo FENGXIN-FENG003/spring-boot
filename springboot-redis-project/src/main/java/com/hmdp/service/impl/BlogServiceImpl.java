@@ -214,8 +214,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
                 offsetCount = 1;
             }
         }
-        // 3.5查询关注的用户blog
+        // 3.5根据userId查询关注的用户blog
         String idStr = StrUtil.join ("," , idList);
+        // 保证数据查询结果顺序一致
         List<Blog> blogs = query ().in ("user_id" , idList).last ("order by field(id," + idStr + ")").list ();
         // 3.6完整blog数据
         blogs.forEach (blog -> {

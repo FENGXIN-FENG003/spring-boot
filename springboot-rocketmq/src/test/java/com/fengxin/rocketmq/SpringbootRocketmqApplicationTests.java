@@ -45,7 +45,7 @@ class SpringbootRocketmqApplicationTests {
 	 */
 	@Test
 	public void AAsyncProducer() throws Exception {
-		DefaultMQProducer producer = new DefaultMQProducer("test_producer_group");
+		DefaultMQProducer producer = new DefaultMQProducer("test_async_producer_group");
 		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
 		producer.start ();
 		Message message = new Message ("testTopic","Hello asyncRocketmq".getBytes());
@@ -64,8 +64,33 @@ class SpringbootRocketmqApplicationTests {
 		// 因为是异步的 所以需要等待异步执行结束
 		log.info ("主线程");
 		System.in.read ();
-		
 	}
+	
+	/**
+	 * 单向消息
+	 * 可用于不重要的消息 如日志处理 信息可能丢失 日志处理：像这样单独处理 保存信息到es
+	 */
+	@Test
+	public void AOnewayProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer("test_oneway_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		Message message = new Message ("testTopic","Hello one way Rocketmq".getBytes());
+		producer.sendOneway (message);
+		log.info ("success");
+		producer.shutdown ();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/**

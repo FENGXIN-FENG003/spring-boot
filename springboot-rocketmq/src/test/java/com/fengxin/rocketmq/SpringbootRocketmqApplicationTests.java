@@ -1,22 +1,22 @@
 package com.fengxin.rocketmq;
 
 import com.fengxin.constant.MqConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageExt;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
+@Slf4j
 @SpringBootTest
 class SpringbootRocketmqApplicationTests {
 	
@@ -33,12 +33,40 @@ class SpringbootRocketmqApplicationTests {
 		producer.start ();
 		// 设置消息
 		Message message = new Message ("testTopic","Hello Rocketmq".getBytes());
-		// 发送
+		// 发送 同步消息 需要等待mq主机和从机返回结果 再进行后续发送
 		SendResult send = producer.send (message);
 		System.out.println ("send = " + send.getSendStatus ());
 		// 关闭生产者
 		producer.shutdown ();
 	}
+	
+	/**
+	 * 异步消息
+	 */
+	@Test
+	public void AAsyncProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer("test_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		Message message = new Message ("testTopic","Hello asyncRocketmq".getBytes());
+		producer.send (message,new SendCallback () {
+			
+			@Override
+			public void onSuccess (SendResult sendResult) {
+				log.info ("success");
+			}
+			
+			@Override
+			public void onException (Throwable throwable) {
+				log.error (throwable.getMessage ());
+			}
+		});
+		// 因为是异步的 所以需要等待异步执行结束
+		log.info ("主线程");
+		System.in.read ();
+		
+	}
+	
 	
 	/**
 	 * 消息消费

@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @SpringBootTest
@@ -162,12 +163,39 @@ class SpringbootRocketmqApplicationTests {
 		producer.shutdown ();
 	}
 	
+	/**
+	 * tag参数 对Topic更深层次划分
+	 * 只有符合相应的tag订阅一致性才能接收消息 过滤消息
+	 */
+	@Test
+	public void ATagProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_tag_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		Message message1 = new Message ("tagTopic","tag1","Hello tag Rocketmq111".getBytes());
+		Message message2 = new Message ("tagTopic","tag2","Hello tag Rocketmq222".getBytes());
+		producer.send (message1);
+		producer.send (message2);
+		log.info ("success");
+		producer.shutdown ();
+	}
 	
+	/**
+	 * key 自定义唯一标识
+	 */
+	@Test
+	public void AKeyProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_key_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		String key = String.valueOf (UUID.randomUUID ());
+		Message message = new Message ("keyTopic","tag",key,"Hello key Rocketmq111".getBytes());
+		producer.send (message);
+		log.info ("success");
+		producer.shutdown ();
+	}
 	
-	
-	
-	
-	
+/*---------------------------------------------------------------------------------------------------------------/
 	/**
 	 * 消息消费
 	 */
@@ -257,5 +285,65 @@ class SpringbootRocketmqApplicationTests {
 		consumer.start();
 		System.in.read ();
 	}
-
+	
+	/**
+	 * tag1消费
+	 */
+	@Test
+	public void ATag1Consumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_tag_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("tagTopic", "tag1");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+				log.info (new String (list.get (0).getBody()));
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
+	
+	/**
+	 * tag1 2消费
+	 */
+	@Test
+	public void ATag12Consumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_tag_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("tagTopic", "tag1 || tag2");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+				log.info (new String (list.get (0).getBody()));
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
+	
+	/**
+	 * key消费
+	 */
+	@Test
+	public void AKeyConsumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_key_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("keyTopic", "*");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+				log.info (new String (list.get (0).getBody()));
+				// 获取key
+				log.info (list.get (0).getKeys());
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
+	
 }

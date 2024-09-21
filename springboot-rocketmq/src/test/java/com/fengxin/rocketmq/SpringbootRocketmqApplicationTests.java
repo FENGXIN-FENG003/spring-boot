@@ -1,16 +1,20 @@
 package com.fengxin.rocketmq;
 
-import com.fengxin.constant.MqConstant;
+import com.fengxin.rocketmq.constant.MqConstant;
+import com.fengxin.rocketmq.entity.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.consumer.listener.*;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.MessageQueueSelector;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -117,6 +121,46 @@ class SpringbootRocketmqApplicationTests {
 		producer.shutdown ();
 	}
 	
+	/**
+	 * 顺序消息
+	 * 1. producer:保证需要顺序消费的消息在同一队列里 而不是轮询
+	 * 2. consumer:保证消费者单线程接收顺序消息 不必全局顺序 保证需要顺序消费的消息即可
+	 */
+	@Test
+	public void AOrderlyProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_orderly_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		List<Order> orders = Arrays.asList (
+				new Order ("aaa",1,"下单"),
+				new Order ("aaa",1,"消息"),
+				new Order ("aaa",1,"物流"),
+				new Order ("bbb",2,"下单"),
+				new Order ("bbb",2,"消息"),
+				new Order ("bbb",2,"物流")
+		);
+		// 发送
+		orders.forEach (order -> {
+			Message message = new Message ("orderTopic",order.toString ().getBytes());
+			// 设置顺序发送
+            try {
+                producer.send (message , new MessageQueueSelector () {
+                    @Override
+                    public MessageQueue select (List<MessageQueue> list , Message message , Object o) {
+	                    int hashCode = o.hashCode ();
+						// 设置固定的队列
+						hashCode %= list.size ();
+						// 存入队列
+	                    return list.get (hashCode);
+                    }
+                },order.getOrderName ());
+            } catch (Exception e) {
+                throw new RuntimeException (e);
+            }
+        });
+		log.info ("success");
+		producer.shutdown ();
+	}
 	
 	
 	
@@ -186,6 +230,28 @@ class SpringbootRocketmqApplicationTests {
 			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 				log.info (new String (list.get (0).getBody()));
 				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
+	
+	/**
+	 * 顺序消费
+	 */
+	@Test
+	public void AOrderlyConsumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_orderly_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("orderTopic", "*");
+		// 使用单线程消费
+		consumer.registerMessageListener (new MessageListenerOrderly () {
+			@Override
+			public ConsumeOrderlyStatus consumeMessage (List<MessageExt> list , ConsumeOrderlyContext consumeOrderlyContext) {
+				// 线程日志
+				log.info (Thread.currentThread ().getName ());
+				log.info (new String (list.get (0).getBody()));
+				return ConsumeOrderlyStatus.SUCCESS;
 			}
 		});
 		consumer.start();

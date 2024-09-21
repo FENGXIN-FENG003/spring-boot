@@ -1,4 +1,4 @@
-package com.fengxin.constant;
+package com.fengxin.rocketmq.constant;
 
 /**
  * @author FENGXIN

@@ -14,6 +14,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -48,7 +49,7 @@ class SpringbootRocketmqApplicationTests {
 		DefaultMQProducer producer = new DefaultMQProducer("test_async_producer_group");
 		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
 		producer.start ();
-		Message message = new Message ("testTopic","Hello asyncRocketmq".getBytes());
+		Message message = new Message ("asyncTopic","Hello asyncRocketmq".getBytes());
 		producer.send (message,new SendCallback () {
 			
 			@Override
@@ -75,13 +76,27 @@ class SpringbootRocketmqApplicationTests {
 		DefaultMQProducer producer = new DefaultMQProducer("test_oneway_producer_group");
 		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
 		producer.start ();
-		Message message = new Message ("testTopic","Hello one way Rocketmq".getBytes());
+		Message message = new Message ("onewayTopic","Hello one way Rocketmq".getBytes());
 		producer.sendOneway (message);
 		log.info ("success");
 		producer.shutdown ();
 	}
 	
-	
+	/**
+	 * 延时消息
+	 */
+	@Test
+	public void AMsProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_ms_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		Message message = new Message ("msTopic","Hello ms Rocketmq".getBytes());
+		// 设置延时时间
+		message.setDelayTimeLevel (3);
+		producer.send (message);
+		log.info ("success" + new Date ());
+		producer.shutdown ();
+	}
 	
 	
 	
@@ -120,6 +135,26 @@ class SpringbootRocketmqApplicationTests {
 		// 启动
 		consumer.start();
 		// 设置一直监听 异步 不能线程结束就不监听
+		System.in.read ();
+	}
+	/**
+	 * 延时消费
+	 */
+	@Test
+	public void AMsConsumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_ms_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("msTopic", "*");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+				log.info ("接受时间：" + new Date ());
+				log.info (new String (list.get (0).getBody()));
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
 		System.in.read ();
 	}
 

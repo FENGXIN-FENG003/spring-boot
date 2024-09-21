@@ -14,6 +14,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -98,8 +99,23 @@ class SpringbootRocketmqApplicationTests {
 		producer.shutdown ();
 	}
 	
-	
-	
+	/**
+	 * 批量消息发送
+	 */
+	@Test
+	public void ABatchProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_batch_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		List <Message> messages = Arrays.asList (
+				new Message ("batchTopic","Hello batch Rocketmq111".getBytes()),
+				new Message ("batchTopic","Hello batch Rocketmq222".getBytes()),
+				new Message ("batchTopic","Hello batch Rocketmq333".getBytes())
+		);
+		producer.send (messages);
+		log.info ("success");
+		producer.shutdown ();
+	}
 	
 	
 	
@@ -150,6 +166,24 @@ class SpringbootRocketmqApplicationTests {
 			@Override
 			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 				log.info ("接受时间：" + new Date ());
+				log.info (new String (list.get (0).getBody()));
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
+	/**
+	 * 批量消费
+	 */
+	@Test
+	public void ABatchConsumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_batch_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("batchTopic", "*");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 				log.info (new String (list.get (0).getBody()));
 				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
 			}

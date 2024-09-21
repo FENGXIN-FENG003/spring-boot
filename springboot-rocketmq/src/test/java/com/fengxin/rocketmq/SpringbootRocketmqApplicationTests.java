@@ -5,8 +5,6 @@ import com.fengxin.rocketmq.entity.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.*;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.MessageQueueSelector;
 import org.apache.rocketmq.client.producer.SendCallback;
@@ -14,7 +12,6 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -57,12 +54,10 @@ class SpringbootRocketmqApplicationTests {
 		producer.start ();
 		Message message = new Message ("asyncTopic","Hello asyncRocketmq".getBytes());
 		producer.send (message,new SendCallback () {
-			
 			@Override
 			public void onSuccess (SendResult sendResult) {
 				log.info ("success");
 			}
-			
 			@Override
 			public void onException (Throwable throwable) {
 				log.error (throwable.getMessage ());
@@ -195,7 +190,23 @@ class SpringbootRocketmqApplicationTests {
 		producer.shutdown ();
 	}
 	
-/*---------------------------------------------------------------------------------------------------------------/
+	/**
+	 * 消息重试和死信
+	 */
+	@Test
+	public void ARetryProducer() throws Exception {
+		DefaultMQProducer producer = new DefaultMQProducer ("test_retry_producer_group");
+		producer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		producer.start ();
+		// private int retryTimesWhenSendFailed = 2;
+		// private int retryTimesWhenSendAsyncFailed = 2;
+		Message message = new Message ("retryTopic","tag1","Hello tag Rocketmq111".getBytes());
+		producer.send (message);
+		log.info ("success");
+		producer.shutdown ();
+	}
+	
+/*--------------------------------------------------------------------------------------------------------------*/
 	/**
 	 * 消息消费
 	 */
@@ -234,7 +245,6 @@ class SpringbootRocketmqApplicationTests {
 		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
 		consumer.subscribe ("msTopic", "*");
 		consumer.registerMessageListener (new MessageListenerConcurrently () {
-			
 			@Override
 			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 				log.info ("接受时间：" + new Date ());
@@ -338,7 +348,6 @@ class SpringbootRocketmqApplicationTests {
 		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
 		consumer.subscribe ("keyTopic", "*");
 		consumer.registerMessageListener (new MessageListenerConcurrently () {
-			
 			@Override
 			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
 				log.info (new String (list.get (0).getBody()));
@@ -351,4 +360,36 @@ class SpringbootRocketmqApplicationTests {
 		System.in.read ();
 	}
 	
+	/**
+	 * 消息重试和死信
+	 * 重试次数：并发模式 16次 单线程模式：Integer.Max_Value次
+	 */
+	@Test
+	public void ARetryConsumer() throws Exception {
+		DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("test_retry_consumer_group");
+		consumer.setNamesrvAddr (MqConstant.NAMESRV_ADDR);
+		consumer.subscribe ("retryTopic", "*");
+		consumer.registerMessageListener (new MessageListenerConcurrently () {
+			@Override
+			public ConsumeConcurrentlyStatus consumeMessage (List<MessageExt> list , ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+				try {
+					// 处理业务 如果报错
+					log.info (new Date ().toString ());
+					log.info (new String (list.get (0).getBody()));
+					log.info ("Retry Times: " + list.get (0).getReconsumeTimes ());
+					//service...
+					int i = 10 / 0;
+				} catch (Exception e){
+					if (list.get (0).getReconsumeTimes() > 2) {
+						log.info ("加入死信队列 通知人工处理");
+						return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+					}
+					return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+				}
+				return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+			}
+		});
+		consumer.start();
+		System.in.read ();
+	}
 }

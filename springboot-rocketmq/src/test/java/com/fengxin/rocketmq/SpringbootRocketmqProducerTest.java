@@ -86,6 +86,7 @@ public class SpringbootRocketmqProducerTest {
                 new Order ("bbb",2,"物流")
         );
         orders.forEach (order -> {
+            // 使用json发送对象消息
             rocketMQTemplate.syncSendOrderly ("bootOrderlyTopic" ,JSONObject.toJSONString (order),order.getOrderName ());
         });
     }
@@ -95,7 +96,7 @@ public class SpringbootRocketmqProducerTest {
      */
     @Test
     public void sendTag(){
-        // topic带上即可
+        // topic带上tag即可
         rocketMQTemplate.syncSend ("bootTagTopic:tag1" , "tag参数");
     }
     
@@ -104,6 +105,7 @@ public class SpringbootRocketmqProducerTest {
      */
     @Test
     public void sengKey(){
+        // 设置key在消息头
         Message<String> message = MessageBuilder.withPayload ("key参数").setHeader (RocketMQHeaders.KEYS , "aaa,bbb,ccc").build ();
         rocketMQTemplate.syncSend ("bootKeyTopic" , message);
     }

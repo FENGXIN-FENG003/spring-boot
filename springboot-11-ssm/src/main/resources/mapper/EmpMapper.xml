@@ -7,13 +7,13 @@
 <!--mapper-locations: classpath:/mapper/*.xml-->
 <mapper namespace="com.fengxin.springboot.ssm.mapper.EmpMapper">
 
-    <resultMap id="BaseResultMap" type="com.hmdp.springboot.ssm.pojo.Emp">
+    <resultMap id="BaseResultMap" type="com.fengxin.springboot.ssm.pojo.Emp">
             <id property="empId" column="emp_id" jdbcType="INTEGER"/>
             <result property="empName" column="emp_name" jdbcType="CHAR"/>
             <result property="empSalary" column="emp_salary" jdbcType="DOUBLE"/>
     </resultMap>
 
-    <select id="getByEmpIdBefore" resultType="com.hmdp.springboot.ssm.pojo.Emp">
+    <select id="getByEmpIdBefore" resultType="com.fengxin.springboot.ssm.pojo.Emp">
         select * from t_emp where emp_id = #{id}
     </select>
 </mapper>

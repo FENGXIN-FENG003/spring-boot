@@ -275,7 +275,7 @@ private Resource getIndexHtmlResource(Resource location) {
    1. 全局异常处理包`exception`
    2. 自定义全局处理异常类
    ```java
-    package com.hmdp.springboot.bootweb.exception;
+    package com.fengxin.springboot.bootweb.exception;
 
       import org.springframework.web.bind.annotation.ExceptionHandler;
       import org.springframework.web.bind.annotation.ResponseBody;

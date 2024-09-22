@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.fengxin.springboot.springsecurity.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="com.hmdp.springboot.springsecurity.pojo.User">
+    <resultMap id="BaseResultMap" type="com.fengxin.springboot.springsecurity.pojo.User">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userName" column="user_name" jdbcType="VARCHAR"/>
             <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>

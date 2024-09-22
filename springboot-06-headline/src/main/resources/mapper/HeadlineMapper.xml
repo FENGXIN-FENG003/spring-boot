@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.fengxin.mapper.HeadlineMapper">
 
-    <resultMap id="BaseResultMap" type="com.hmdp.pojo.Headline">
+    <resultMap id="BaseResultMap" type="com.fengxin.pojo.Headline">
             <id property="hid" column="hid" jdbcType="INTEGER"/>
             <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="article" column="article" jdbcType="VARCHAR"/>

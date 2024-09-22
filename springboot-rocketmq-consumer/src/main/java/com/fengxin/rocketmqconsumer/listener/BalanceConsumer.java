@@ -22,17 +22,17 @@ import org.springframework.stereotype.Component;
 )
 public class BalanceConsumer implements RocketMQListener<MessageExt> {
     /**
-     * 消息堆积解决：
-     * 1.生产者生产太快问题
-     *  1）增加消费者数量 但不大于队列数量
-     *  2）适当增加线程数量 IO 2n CPU n || n + 1
-     *  3) 动态扩容队列数量 从而增加消费者数量
-     * 2.消费者问题
-     *  1）排查消费者程序问题
-     * 消息丢失解决：
-     * 1.producer发送消息时将相关信息存入MySQL持久化
-     * 2.consumer消费消息后更新相关信息在MySQL
-     * 3.定时任务 检索已经发送的消息但是长时间未消费的消息 做相应业务逻辑 如重新发送 并更新数据库（保证幂等性防止重复操作）
+     * 消息堆积解决：<br>
+     *  1.生产者生产太快问题<br>
+     *      1）增加消费者数量 但不大于队列数量<br>
+     *      2）适当增加线程数量 IO 2n CPU n || n + 1<br>
+     *      3) 动态扩容队列数量 从而增加消费者数量<br>
+     *  2.消费者问题<br>
+     *      1）排查消费者程序问题<br>
+     * 消息丢失解决：<br>
+     *  1.producer发送消息时将相关信息存入MySQL持久化<br>
+     *  2.consumer消费消息后更新相关信息在MySQL<br>
+     *  3.定时任务 检索已经发送的消息但是长时间未消费的消息 做相应业务逻辑 如重新发送 并更新数据库（保证幂等性防止重复操作）<br>
      * @param messageExt
      */
     @Override

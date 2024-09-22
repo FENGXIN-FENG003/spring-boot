@@ -29,6 +29,10 @@ public class BalanceConsumer implements RocketMQListener<MessageExt> {
      *  3) 动态扩容队列数量 从而增加消费者数量
      * 2.消费者问题
      *  1）排查消费者程序问题
+     * 消息丢失解决：
+     * 1.producer发送消息时将相关信息存入MySQL持久化
+     * 2.consumer消费消息后更新相关信息在MySQL
+     * 3.定时任务 检索已经发送的消息但是长时间未消费的消息 做相应业务逻辑 如重新发送 并更新数据库（保证幂等性防止重复操作）
      * @param messageExt
      */
     @Override
